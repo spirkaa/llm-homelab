@@ -201,8 +201,13 @@ models:
     cmd: >
       ${macros-docker-ik-llama}
       --model /app/models/ubergarm/GLM-4.5-Air-GGUF/GLM-4.5-Air-IQ4_KSS-00001-of-00002.gguf
-      --chat-template chatglm4
-      --ctx-size 32768
+      --host 0.0.0.0
+      --port 8080
+      --metrics
+      --no-mmap
+      --parallel 1
+      --threads 8
+      -rtr
       -fa
       -fmoe
       -ctk q8_0
@@ -211,42 +216,12 @@ models:
       -b 4096
       -ngl 99
       -ot exps=CPU
-      --parallel 1
-      --threads 8
-      --host 0.0.0.0
-      --port 8080
-      --no-mmap
-      --temp 0.6
-      --min-p 0
-      --top-p 0.95
-      --top-k 40
-      -rtr
-
-  glm-4.5-air-q4-kxl:
-    # https://huggingface.co/unsloth/GLM-4.5-Air-GGUF
-    proxy: ${macros-docker-proxy}
-    cmdStop: ${macros-docker-stop}
-    cmd: >
-      ${macros-docker-llama}
-      --model /app/models/unsloth/GLM-4.5-Air-GGUF/GLM-4.5-Air-UD-Q4_K_XL-00001-of-00002.gguf
-      --port 8080
-      --metrics
-      --mlock
-      --no-mmap
-      --cont-batching
-      --flash-attn on
-      --n-gpu-layers 99
-      --n-cpu-moe 38
-      --batch-size 2048
-      --ubatch-size 1024
       --ctx-size 32768
       --temp 0.6
       --min-p 0
       --top-p 0.95
       --top-k 40
-      --jinja
-      --cache-type-k q8_0
-      --cache-type-v q8_0
+      --chat-template chatglm4
 
   nvidia-nemotron-nano-9b-v2:
     proxy: ${macros-docker-proxy}
@@ -291,3 +266,4 @@ models:
       --cache-type-k q8_0
       --cache-type-v q8_0
       --mmproj /app/models/unsloth/Magistral-Small-2509-GGUF/mmproj-F16.gguf
+      --special
