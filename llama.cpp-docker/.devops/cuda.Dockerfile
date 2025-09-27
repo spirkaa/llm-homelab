@@ -1,3 +1,5 @@
+# hadolint global ignore=DL3006,DL3008,DL3013
+
 ARG UBUNTU_VERSION=22.04
 # This needs to generally match the container host's environment.
 ARG CUDA_VERSION=12.4.0
@@ -12,7 +14,8 @@ FROM ${BASE_CUDA_DEV_CONTAINER} AS build
 ARG CUDA_DOCKER_ARCH=default
 
 RUN apt-get update && \
-    apt-get install -y build-essential cmake python3 python3-pip git libcurl4-openssl-dev libgomp1 ccache
+    apt-get install -y --no-install-recommends \
+    build-essential cmake python3 python3-pip git libcurl4-openssl-dev libgomp1 ccache
 
 WORKDIR /app
 
@@ -21,6 +24,7 @@ COPY . .
 ENV CCACHE_DIR=/root/.cache/ccache
 ENV PATH=/usr/lib/ccache:$PATH
 
+# hadolint ignore=SC2046
 RUN --mount=type=cache,target=/root/.cache/ccache \
     if [ "${CUDA_DOCKER_ARCH}" != "default" ]; then \
         export CMAKE_ARGS="-DCMAKE_CUDA_ARCHITECTURES=${CUDA_DOCKER_ARCH}"; \
@@ -33,7 +37,7 @@ RUN mkdir -p /app/lib && \
 
 RUN mkdir -p /app/full \
     && cp build/bin/* /app/full \
-    && cp *.py /app/full \
+    && cp ./*.py /app/full \
     && cp -r gguf-py /app/full \
     && cp -r requirements /app/full \
     && cp requirements.txt /app/full \
@@ -43,9 +47,9 @@ RUN mkdir -p /app/full \
 FROM ${BASE_CUDA_RUN_CONTAINER} AS base
 
 RUN apt-get update \
-    && apt-get install -y libgomp1 curl\
-    && apt autoremove -y \
-    && apt clean -y \
+    && apt-get install -y --no-install-recommends libgomp1 curl\
+    && apt-get autoremove -y \
+    && apt-get clean -y \
     && rm -rf /tmp/* /var/tmp/* \
     && find /var/cache/apt/archives /var/lib/apt/lists -not -name lock -type f -delete \
     && find /var/cache -type f -delete
@@ -60,14 +64,14 @@ COPY --from=build /app/full /app
 WORKDIR /app
 
 RUN apt-get update \
-    && apt-get install -y \
+    && apt-get install -y --no-install-recommends \
     git \
     python3 \
     python3-pip \
-    && pip install --upgrade pip setuptools wheel \
-    && pip install --break-system-packages -r requirements.txt \
-    && apt autoremove -y \
-    && apt clean -y \
+    && pip install --no-cache-dir --upgrade pip setuptools wheel \
+    && pip install --no-cache-dir --break-system-packages -r requirements.txt \
+    && apt-get autoremove -y \
+    && apt-get clean -y \
     && rm -rf /tmp/* /var/tmp/* \
     && find /var/cache/apt/archives /var/lib/apt/lists -not -name lock -type f -delete \
     && find /var/cache -type f -delete

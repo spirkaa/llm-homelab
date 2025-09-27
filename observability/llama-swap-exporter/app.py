@@ -7,22 +7,15 @@ from operator import itemgetter
 from urllib.parse import urljoin
 
 import requests
-from prometheus_client import CONTENT_TYPE_LATEST, REGISTRY, Histogram, generate_latest
+from prometheus_client import CONTENT_TYPE_LATEST, REGISTRY, generate_latest
 from prometheus_client.core import CounterMetricFamily, GaugeMetricFamily
 from prometheus_client.registry import Collector
-from prometheus_client.utils import INF
 
 LLAMA_SWAP_BASE_URL = os.getenv("LLAMA_SWAP_BASE_URL", "http://localhost:8080")
 REFRESH_INTERVAL = int(os.getenv("REFRESH_INTERVAL", "15"))
 EXPORTER_PORT = int(os.getenv("EXPORTER_PORT", "8081"))
 
 METRIC_TYPES = {"counter": CounterMetricFamily, "gauge": GaugeMetricFamily}
-
-# EXPORTER_DURATION = Histogram(
-#     "llama_swap_exporter_duration",
-#     "Main loop duration (seconds).",
-#     buckets=(0.1, 0.25, 0.5, 0.75, 1.0, 1.5, 2.0, 2.5, 5.0, 7.5, 10.0, INF),
-# )
 
 
 class LlamaSwapApi:
@@ -84,7 +77,6 @@ class LlamaSwapCollector(Collector):
 
     def json_to_gauges(self, data: list[dict]) -> list[GaugeMetricFamily]:
         """Convert a list of JSON objects into GaugeMetricFamily objects."""
-
         cache_metric = self._make_metric(
             "llamaswap_model_cache_tokens", "Number of prompt tokens from cache."
         )
@@ -216,7 +208,7 @@ def signal_handler(*args) -> None:
     signal_name = signal.Signals(args[0]).name
     print(f"Terminating, {signal_name} signal received.")
     time.sleep(0)
-    raise SystemExit()
+    raise SystemExit
 
 
 def run_http_server() -> None:
@@ -226,7 +218,7 @@ def run_http_server() -> None:
 
 
 def main() -> None:
-    "Execute main function."
+    """Execute main function."""
     signal.signal(signal.SIGTERM, signal_handler)
     signal.signal(signal.SIGINT, signal_handler)
 

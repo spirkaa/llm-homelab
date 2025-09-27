@@ -15,4 +15,4 @@ datasources:
   - name: VictoriaLogs
     type: victoriametrics-logs-datasource
     access: proxy
-    url:  http://victorialogs:9428
+    url: http://victorialogs:9428
