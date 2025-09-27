@@ -1,0 +1,293 @@
+# https://github.com/mostlygeek/llama-swap/wiki/Configuration
+# https://github.com/ggml-org/llama.cpp/blob/master/tools/server/README.md
+
+healthCheckTimeout: 300
+logLevel: debug
+metricsMaxInMemory: 1000
+
+macros:
+  macros-docker-proxy: http://host.docker.internal:${PORT}
+  macros-docker-stop: docker stop model-${MODEL_ID}
+  macros-docker-llama: >
+    docker run
+      --init --rm
+      --name model-${MODEL_ID}
+      --gpus all --ipc=host --ulimit memlock=-1
+      -v /home/spirkaa/.lmstudio/models:/app/models
+      -v /home/spirkaa/projects/llm-homelab/llama-swap/config:/app/config
+      -p ${PORT}:8080 git.devmem.ru/projects/llm-homelab/llama.cpp:server-cuda
+  macros-docker-ik-llama: >
+    docker run
+      --init --rm
+      --name model-${MODEL_ID}
+      --gpus all --ipc=host --ulimit memlock=-1
+      -v /home/spirkaa/.lmstudio/models:/app/models
+      -v /home/spirkaa/projects/llm-homelab/llama-swap/config:/app/config
+      -p ${PORT}:8080 git.devmem.ru/projects/llm-homelab/ik_llama.cpp:server-cuda
+
+groups:
+  forever:
+    persistent: true
+    swap: false
+    exclusive: false
+    members:
+      - qwen3-0.6b
+
+models:
+  gemma-3-27b-it-qat:
+    # https://docs.unsloth.ai/basics/gemma-3-how-to-run-and-fine-tune
+    proxy: ${macros-docker-proxy}
+    cmdStop: ${macros-docker-stop}
+    cmd: >
+      ${macros-docker-llama}
+      --model /app/models/google/gemma-3-27b-it-qat-q4_0-gguf/gemma-3-27b-it-q4_0.gguf
+      --port 8080
+      --metrics
+      --mlock
+      --cont-batching
+      --flash-attn on
+      --n-gpu-layers 99
+      --batch-size 2048
+      --ubatch-size 512
+      --ctx-size 25000
+      --temp 1.0
+      --min-p 0.0
+      --top-p 0.95
+      --top-k 64
+      --mmproj /app/models/google/gemma-3-27b-it-qat-q4_0-gguf/mmproj-model-f16-27B.gguf
+
+  gpt-oss-120b:
+    # https://docs.unsloth.ai/basics/gpt-oss-how-to-run-and-fine-tune
+    proxy: ${macros-docker-proxy}
+    cmdStop: ${macros-docker-stop}
+    cmd: >
+      ${macros-docker-llama}
+      --model /app/models/unsloth/gpt-oss-120b-GGUF/gpt-oss-120b-UD-Q4_K_XL-00001-of-00002.gguf
+      --port 8080
+      --metrics
+      --mlock
+      --cont-batching
+      --flash-attn on
+      --n-gpu-layers 99
+      --n-cpu-moe 27
+      --batch-size 4096
+      --ubatch-size 2048
+      --ctx-size 100000
+      --temp 1.0
+      --min-p 0.0
+      --top-p 1.0
+      --top-k 0.0
+      --jinja
+      --chat-template-kwargs '{"reasoning_effort": "medium"}'
+      --grammar-file /app/config/gpt-oss-vscode.gbnf
+
+  gpt-oss-20b:
+    # https://docs.unsloth.ai/basics/gpt-oss-how-to-run-and-fine-tune
+    proxy: ${macros-docker-proxy}
+    cmdStop: ${macros-docker-stop}
+    cmd: >
+      ${macros-docker-llama}
+      --model /app/models/unsloth/gpt-oss-20b-GGUF/gpt-oss-20b-F16.gguf
+      --port 8080
+      --metrics
+      --mlock
+      --cont-batching
+      --flash-attn on
+      --n-gpu-layers 99
+      --batch-size 4096
+      --ubatch-size 2048
+      --ctx-size 131072
+      --temp 1.0
+      --min-p 0.0
+      --top-p 1.0
+      --top-k 0.0
+      --jinja
+      --chat-template-kwargs '{"reasoning_effort": "medium"}'
+      --grammar-file /app/config/gpt-oss-vscode.gbnf
+      --parallel 2
+
+  qwen3-0.6b:
+    # https://docs.unsloth.ai/basics/qwen3-how-to-run-and-fine-tune/qwen3-2507
+    proxy: ${macros-docker-proxy}
+    cmdStop: ${macros-docker-stop}
+    cmd: >
+      ${macros-docker-llama}
+      --model /app/models/unsloth/Qwen3-0.6B-GGUF/Qwen3-0.6B-UD-Q4_K_XL.gguf
+      --port 8080
+      --metrics
+      --mlock
+      --cont-batching
+      --flash-attn on
+      --n-gpu-layers 99
+      --batch-size 2048
+      --ubatch-size 512
+      --ctx-size 16382
+      --temp 0.7
+      --min-p 0.0
+      --top-p 0.8
+      --top-k 20
+      --threads 4
+      --cache-type-k q8_0
+      --cache-type-v q8_0
+
+  qwen3-coder-30b-a3b-instruct:
+    # https://docs.unsloth.ai/basics/qwen3-coder-how-to-run-locally
+    proxy: ${macros-docker-proxy}
+    cmdStop: ${macros-docker-stop}
+    cmd: >
+      ${macros-docker-llama}
+      --model /app/models/unsloth/Qwen3-Coder-30B-A3B-Instruct-GGUF/Qwen3-Coder-30B-A3B-Instruct-UD-Q4_K_XL.gguf
+      --port 8080
+      --metrics
+      --mlock
+      --cont-batching
+      --flash-attn on
+      --n-gpu-layers 99
+      --batch-size 2048
+      --ubatch-size 1024
+      --ctx-size 45000
+      --temp 0.7
+      --min-p 0.0
+      --top-p 0.8
+      --top-k 20
+      --repeat_penalty 1.05
+
+  qwen3-30b-a3b-instruct-2507:
+    # https://docs.unsloth.ai/basics/qwen3-how-to-run-and-fine-tune/qwen3-2507
+    proxy: ${macros-docker-proxy}
+    cmdStop: ${macros-docker-stop}
+    cmd: >
+      ${macros-docker-llama}
+      --model /app/models/unsloth/Qwen3-30B-A3B-Instruct-2507-GGUF/Qwen3-30B-A3B-Instruct-2507-UD-Q4_K_XL.gguf
+      --port 8080
+      --metrics
+      --mlock
+      --cont-batching
+      --flash-attn on
+      --n-gpu-layers 99
+      --batch-size 2048
+      --ubatch-size 1024
+      --ctx-size 45000
+      --temp 0.7
+      --min-p 0.0
+      --top-p 0.8
+      --top-k 20
+
+  qwen3-30b-a3b-thinking-2507-deepseek-v31-distill:
+    # https://docs.unsloth.ai/basics/qwen3-how-to-run-and-fine-tune/qwen3-2507
+    proxy: ${macros-docker-proxy}
+    cmdStop: ${macros-docker-stop}
+    cmd: >
+      ${macros-docker-llama}
+      --model /app/models/BasedBase/Qwen3-30B-A3B-Thinking-2507-Deepseek-v3.1-Distill/Qwen3-30B-A3B-Thinking-2507-Deepseek-v3.1-Distill-Q4_K_S.gguf
+      --port 8080
+      --metrics
+      --mlock
+      --cont-batching
+      --flash-attn on
+      --n-gpu-layers 99
+      --batch-size 2048
+      --ubatch-size 1024
+      --ctx-size 45000
+      --temp 0.6
+      --min-p 0.0
+      --top-p 0.95
+      --top-k 20
+
+  glm-4.5-air-iq4-kss:
+    # https://huggingface.co/ubergarm/GLM-4.5-Air-GGUF
+    proxy: ${macros-docker-proxy}
+    cmdStop: ${macros-docker-stop}
+    cmd: >
+      ${macros-docker-ik-llama}
+      --model /app/models/ubergarm/GLM-4.5-Air-GGUF/GLM-4.5-Air-IQ4_KSS-00001-of-00002.gguf
+      --chat-template chatglm4
+      --ctx-size 32768
+      -fa
+      -fmoe
+      -ctk q8_0
+      -ctv q8_0
+      -ub 4096
+      -b 4096
+      -ngl 99
+      -ot exps=CPU
+      --parallel 1
+      --threads 8
+      --host 0.0.0.0
+      --port 8080
+      --no-mmap
+      --temp 0.6
+      --min-p 0
+      --top-p 0.95
+      --top-k 40
+      -rtr
+
+  glm-4.5-air-q4-kxl:
+    # https://huggingface.co/unsloth/GLM-4.5-Air-GGUF
+    proxy: ${macros-docker-proxy}
+    cmdStop: ${macros-docker-stop}
+    cmd: >
+      ${macros-docker-llama}
+      --model /app/models/unsloth/GLM-4.5-Air-GGUF/GLM-4.5-Air-UD-Q4_K_XL-00001-of-00002.gguf
+      --port 8080
+      --metrics
+      --mlock
+      --no-mmap
+      --cont-batching
+      --flash-attn on
+      --n-gpu-layers 99
+      --n-cpu-moe 38
+      --batch-size 2048
+      --ubatch-size 1024
+      --ctx-size 32768
+      --temp 0.6
+      --min-p 0
+      --top-p 0.95
+      --top-k 40
+      --jinja
+      --cache-type-k q8_0
+      --cache-type-v q8_0
+
+  nvidia-nemotron-nano-9b-v2:
+    proxy: ${macros-docker-proxy}
+    cmdStop: ${macros-docker-stop}
+    cmd: >
+      ${macros-docker-llama}
+      --model /app/models/bartowski/nvidia_NVIDIA-Nemotron-Nano-9B-v2-GGUF/nvidia_NVIDIA-Nemotron-Nano-9B-v2-Q6_K_L.gguf
+      --port 8080
+      --metrics
+      --mlock
+      --cont-batching
+      --flash-attn on
+      --n-gpu-layers 99
+      --batch-size 4096
+      --ubatch-size 2048
+      --ctx-size 120000
+      --temp 0.6
+      --top-p 0.95
+      --jinja
+
+  magistral-small-2509:
+    proxy: ${macros-docker-proxy}
+    cmdStop: ${macros-docker-stop}
+    cmd: >
+      ${macros-docker-llama}
+      --model /app/models/unsloth/Magistral-Small-2509-GGUF/Magistral-Small-2509-UD-Q4_K_XL.gguf
+      --port 8080
+      --metrics
+      --mlock
+      --cont-batching
+      --flash-attn on
+      --n-gpu-layers 99
+      --batch-size 4096
+      --ubatch-size 2048
+      --ctx-size 65536
+      --temp 0.7
+      --min-p 0.01
+      --top-p 0.95
+      --top-k -1
+      --repeat-penalty 1.0
+      --jinja
+      --cache-type-k q8_0
+      --cache-type-v q8_0
+      --mmproj /app/models/unsloth/Magistral-Small-2509-GGUF/mmproj-F16.gguf

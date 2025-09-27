@@ -1,0 +1,44 @@
+services:
+  llama-swap:
+    image: git.devmem.ru/projects/llm-homelab/llama-swap
+    build:
+      context: llama-swap
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /home/spirkaa/.lmstudio/models:/app/models
+      - ./llama-swap/config:/app/config
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    ipc: host
+    ulimits:
+      memlock: -1
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities:
+                - gpu
+    restart: unless-stopped
+
+  open-webui:
+    image: ghcr.io/open-webui/open-webui:main
+    pull_policy: always
+    depends_on:
+      - llama-swap
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./open-webui/data:/app/backend/data
+    environment:
+      - WEBUI_AUTH=False
+      - PORT=3000
+      - ENABLE_OPENAI_API=True
+      - OPENAI_API_BASE_URL=http://llama-swap:8080/v1
+      - ENABLE_OLLAMA_API=False
+      - HF_HUB_OFFLINE=1
+    restart: unless-stopped

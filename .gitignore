@@ -1,0 +1,7 @@
+ik_llama.cpp/*
+!ik_llama.cpp/.devops/llama-server-cuda.Dockerfile
+
+llama.cpp/*
+!llama.cpp/.devops/cuda.Dockerfile
+
+**/data/*

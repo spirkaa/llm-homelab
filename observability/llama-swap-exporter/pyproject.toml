@@ -1,0 +1,11 @@
+[project]
+name = "llama-swap-exporter"
+version = "0.1.0"
+description = "Prometheus Exporter for llama-swap."
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "prometheus_client==0.22.1",
+    "python-dotenv==1.1.1",
+    "requests==2.32.5",
+]

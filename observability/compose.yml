@@ -1,0 +1,142 @@
+services:
+  grafana:
+    image: docker.io/grafana/grafana:12.1.1
+    ports:
+      - "3001:3000"
+    volumes:
+      - ./grafana/data:/var/lib/grafana
+      - ./grafana/provisioning/:/etc/grafana/provisioning/
+      - ./grafana/dashboards:/var/lib/grafana/dashboards/
+    environment:
+      - GF_AUTH_ANONYMOUS_ENABLED=true
+      - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
+      - GF_AUTH_DISABLE_LOGIN_FORM=true
+      - GF_INSTALL_PLUGINS=victoriametrics-logs-datasource,victoriametrics-metrics-datasource
+    restart: unless-stopped
+
+  vmsingle:
+    image: docker.io/victoriametrics/victoria-metrics:v1.126.0
+    ports:
+      - "8428:8428"
+    volumes:
+      - ./vmsingle/data:/vmsingle
+      - ./vmsingle/promscrape.yml:/promscrape.yml
+    command:
+      - -storageDataPath=/vmsingle
+      - -retentionPeriod=31
+      - -loggerFormat=json
+      - -promscrape.config=/promscrape.yml
+      - -promscrape.maxScrapeSize=1Gb
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:8428/health"]
+      interval: 10s
+      timeout: 1s
+      retries: 3
+    restart: unless-stopped
+
+  victorialogs:
+    image: docker.io/victoriametrics/victoria-logs:v1.33.1
+    ports:
+      - "9428:9428"
+    volumes:
+      - ./victorialogs/data:/vlogs
+    command:
+      - -storageDataPath=/vlogs
+      - -retention.maxDiskSpaceUsageBytes=10GiB
+      - -loggerFormat=json
+      - -syslog.listenAddr.tcp=0.0.0.0:8094
+      - -datadog.streamFields=service,hostname,ddsource
+      - -journald.streamFields=_HOSTNAME,_SYSTEMD_UNIT,_PID
+      - -journald.ignoreFields=MESSAGE_ID,INVOCATION_ID,USER_INVOCATION_ID
+      - -journald.ignoreFields=_BOOT_ID,_MACHINE_ID,_SYSTEMD_INVOCATION_ID,_STREAM_ID,_UID
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:9428/health"]
+      interval: 10s
+      timeout: 1s
+      retries: 3
+    restart: unless-stopped
+
+  vector:
+    image: docker.io/timberio/vector:0.49.X-distroless-libc
+    user: root
+    ports:
+      - "8686:8686"
+    volumes:
+      - type: bind
+        source: /var/run/docker.sock
+        target: /var/run/docker.sock
+      - type: bind
+        source: /var/lib/docker
+        target: /var/lib/docker
+      - ./vector/vector.yaml:/etc/vector/vector.yaml:ro
+    depends_on:
+      victorialogs:
+        condition: service_healthy
+      vmsingle:
+        condition: service_healthy
+    restart: unless-stopped
+
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:v0.52.1
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:ro
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+      - /dev/disk/:/dev/disk:ro
+    privileged: true
+    restart: unless-stopped
+
+  node-exporter:
+    image: docker.io/prom/node-exporter:v1.9.1
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
+      - /var/run/dbus/system_bus_socket:/var/run/dbus/system_bus_socket:ro
+    command:
+      - "--path.procfs=/host/proc"
+      - "--path.rootfs=/rootfs"
+      - "--path.sysfs=/host/sys"
+      - "--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)"
+      - "--collector.systemd"
+      - "--collector.processes"
+    pid: host
+    restart: unless-stopped
+
+  nvitop-exporter:
+    image: git.devmem.ru/projects/llm-homelab/nvitop-exporter
+    build:
+      context: nvitop-exporter
+      dockerfile: Dockerfile
+    command: ["--bind-address", "0.0.0.0", "--port", "5050"]
+    pid: host
+    runtime: nvidia
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - capabilities:
+                - gpu
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:5050/"]
+      interval: 10s
+      timeout: 1s
+      retries: 3
+    restart: unless-stopped
+
+  llama-swap-exporter:
+    image: git.devmem.ru/projects/llm-homelab/llama-swap-exporter
+    build:
+      context: llama-swap-exporter
+      dockerfile: Dockerfile
+    environment:
+      - LLAMA_SWAP_BASE_URL=http://host.docker.internal:8080
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:8081/"]
+      interval: 10s
+      timeout: 1s
+      retries: 3
+    restart: unless-stopped
