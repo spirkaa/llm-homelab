@@ -14,6 +14,8 @@ TXT_CLEAR="\e[0m"
 CUDA_VERSION=12.9.1
 CUDA_DOCKER_ARCH=86
 
+git pull --rebase
+
 echo -e "${TXT_GREEN}###### Building llama.cpp ######${TXT_CLEAR}"
 mkdir -p llama.cpp
 cd llama.cpp || exit
