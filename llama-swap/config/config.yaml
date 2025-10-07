@@ -15,7 +15,8 @@ macros:
       --gpus all --ipc=host --ulimit memlock=-1
       -v /home/spirkaa/.lmstudio/models:/app/models
       -v /home/spirkaa/projects/llm-homelab/llama-swap/config:/app/config
-      -p ${PORT}:8080 git.devmem.ru/projects/llm-homelab/llama.cpp:server-cuda
+      -p ${PORT}:8080
+      git.devmem.ru/projects/llm-homelab/llama.cpp:server-cuda
   macros-docker-ik-llama: >
     docker run
       --init --rm
@@ -23,7 +24,8 @@ macros:
       --gpus all --ipc=host --ulimit memlock=-1
       -v /home/spirkaa/.lmstudio/models:/app/models
       -v /home/spirkaa/projects/llm-homelab/llama-swap/config:/app/config
-      -p ${PORT}:8080 git.devmem.ru/projects/llm-homelab/ik_llama.cpp:server-cuda
+      -p ${PORT}:8080
+      git.devmem.ru/projects/llm-homelab/ik_llama.cpp:server-cuda
 
 groups:
   forever:
@@ -267,3 +269,24 @@ models:
       --cache-type-v q8_0
       --mmproj /app/models/unsloth/Magistral-Small-2509-GGUF/mmproj-F16.gguf
       --special
+
+  granite-4.0-h-small:
+    # https://docs.unsloth.ai/new/ibm-granite-4.0
+    proxy: ${macros-docker-proxy}
+    cmdStop: ${macros-docker-stop}
+    cmd: >
+      ${macros-docker-llama}
+      --model /app/models/unsloth/granite-4.0-h-small-GGUF/granite-4.0-h-small-UD-Q4_K_XL.gguf
+      --port 8080
+      --metrics
+      --mlock
+      --cont-batching
+      --flash-attn on
+      --n-gpu-layers 99
+      --batch-size 4096
+      --ubatch-size 2048
+      --ctx-size 131072
+      --temp 0
+      --min-p 0
+      --top-p 1.0
+      --top-k 0

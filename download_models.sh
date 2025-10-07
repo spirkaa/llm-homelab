@@ -11,7 +11,7 @@ BASE_DIR=/home/spirkaa/.lmstudio/models
 
 HEADER="Authorization: Bearer $HF_TOKEN"
 
-URL="https://huggingface.co/unsloth/Magistral-Small-2509-GGUF/resolve/main/mmproj-F16.gguf?download=true"
+URL="https://huggingface.co/unsloth/granite-4.0-h-small-GGUF/resolve/main/granite-4.0-h-small-UD-Q4_K_XL.gguf?download=true"
 
 # Strip the scheme+host
 _url_path="${URL#*://huggingface.co/}"
