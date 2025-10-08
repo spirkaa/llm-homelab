@@ -218,7 +218,7 @@ models:
       -b 4096
       -ngl 99
       -ot exps=CPU
-      --ctx-size 32768
+      --ctx-size 131072
       --temp 0.6
       --min-p 0
       --top-p 0.95
