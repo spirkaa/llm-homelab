@@ -175,13 +175,13 @@ models:
       --top-p 0.8
       --top-k 20
 
-  qwen3-30b-a3b-thinking-2507-deepseek-v31-distill:
+  qwen3-30b-a3b-thinking-2507:
     # https://docs.unsloth.ai/basics/qwen3-how-to-run-and-fine-tune/qwen3-2507
     proxy: ${macros-docker-proxy}
     cmdStop: ${macros-docker-stop}
     cmd: >
       ${macros-docker-llama}
-      --model /app/models/BasedBase/Qwen3-30B-A3B-Thinking-2507-Deepseek-v3.1-Distill/Qwen3-30B-A3B-Thinking-2507-Deepseek-v3.1-Distill-Q4_K_S.gguf
+      --model /app/models/unsloth/Qwen3-30B-A3B-Thinking-2507-GGUF/Qwen3-30B-A3B-Thinking-2507-UD-Q4_K_XL.gguf
       --port 8080
       --metrics
       --mlock
