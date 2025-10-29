@@ -1,6 +1,6 @@
 services:
   grafana:
-    image: docker.io/grafana/grafana:12.2.0
+    image: docker.io/grafana/grafana:12.2.1
     ports:
       - "3001:3000"
     volumes:
