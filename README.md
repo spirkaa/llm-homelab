@@ -2,6 +2,11 @@
 
 Конфигурация инструментов для локального запуска языковых моделей.
 
+- [llama-swap](https://github.com/mostlygeek/llama-swap)
+- [llama.cpp](https://github.com/ggml-org/llama.cpp)
+- [ik_llama.cpp](https://github.com/ikawrakow/ik_llama.cpp)
+- [open-webui](https://github.com/open-webui/open-webui)
+
 ## Команды
 
 ### Загрузка-обновление-сборка образов и запуск всех контейнеров
@@ -36,9 +41,9 @@
 
 ## Железо
 
-* MSI GeForce RTX 3090 Gaming X Trio 24G
-* AMD Ryzen 7 3800X
-* GIGABYTE X570 AORUS PRO
-* 4x16 GB DDR4-3200 G.SKILL F4-3200C16S-16GVK
-* 1 TB Samsung 980 Pro
-* Fractal Design Define R6, Corsair RM850i
+- MSI GeForce RTX 3090 Gaming X Trio 24G
+- AMD Ryzen 7 3800X
+- GIGABYTE X570 AORUS PRO
+- 4x16 GB DDR4-3200 G.SKILL F4-3200C16S-16GVK
+- 1 TB Samsung 980 Pro
+- Fractal Design Define R6, Corsair RM850i
