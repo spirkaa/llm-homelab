@@ -88,7 +88,7 @@ services:
     restart: unless-stopped
 
   node-exporter:
-    image: docker.io/prom/node-exporter:v1.9.1
+    image: docker.io/prom/node-exporter:v1.10.2
     volumes:
       - /proc:/host/proc:ro
       - /sys:/host/sys:ro
