@@ -235,8 +235,6 @@ models:
       --parallel 1
       --threads 8
       -rtr
-      -fa
-      -fmoe
       -ctk q8_0
       -ctv q8_0
       -ub 4096
