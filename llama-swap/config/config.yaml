@@ -196,6 +196,31 @@ models:
       --top-p 0.95
       --top-k 20
 
+  qwen3-vl-32b:
+    # https://docs.unsloth.ai/models/qwen3-vl-run-and-fine-tune
+    proxy: ${macros-docker-proxy}
+    cmdStop: ${macros-docker-stop}
+    cmd: >
+      ${macros-docker-llama}
+      --model /app/models/unsloth/Qwen3-VL-32B-Instruct-GGUF/Qwen3-VL-32B-Instruct-UD-Q3_K_XL.gguf
+      --port 8080
+      --metrics
+      --mlock
+      --cont-batching
+      --flash-attn on
+      --n-gpu-layers 99
+      --batch-size 2048
+      --ubatch-size 1024
+      --ctx-size 12288
+      --temp 0.7
+      --min-p 0.0
+      --top-p 0.8
+      --top-k 20
+      --repeat_penalty 1.0
+      --presence_penalty 1.5
+      --jinja
+      --mmproj /app/models/unsloth/Qwen3-VL-32B-Instruct-GGUF/mmproj-F16.gguf
+
   glm-4.5-air-iq4-kss:
     # https://huggingface.co/ubergarm/GLM-4.5-Air-GGUF
     proxy: ${macros-docker-proxy}
