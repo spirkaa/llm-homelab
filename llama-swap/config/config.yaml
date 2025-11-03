@@ -131,6 +131,7 @@ models:
       --threads 4
       --cache-type-k q8_0
       --cache-type-v q8_0
+      --jinja
 
   qwen3-coder-30b-a3b-instruct:
     # https://docs.unsloth.ai/basics/qwen3-coder-how-to-run-locally
@@ -153,6 +154,7 @@ models:
       --top-p 0.8
       --top-k 20
       --repeat_penalty 1.05
+      --jinja
 
   qwen3-30b-a3b-instruct-2507:
     # https://docs.unsloth.ai/basics/qwen3-how-to-run-and-fine-tune/qwen3-2507
@@ -174,6 +176,7 @@ models:
       --min-p 0.0
       --top-p 0.8
       --top-k 20
+      --jinja
 
   qwen3-30b-a3b-thinking-2507:
     # https://docs.unsloth.ai/basics/qwen3-how-to-run-and-fine-tune/qwen3-2507
@@ -195,6 +198,7 @@ models:
       --min-p 0.0
       --top-p 0.95
       --top-k 20
+      --jinja
 
   qwen3-vl-32b:
     # https://docs.unsloth.ai/models/qwen3-vl-run-and-fine-tune
@@ -210,8 +214,10 @@ models:
       --flash-attn on
       --n-gpu-layers 99
       --batch-size 2048
-      --ubatch-size 1024
-      --ctx-size 12288
+      --ubatch-size 2048
+      --ctx-size 40000
+      --cache-type-k q8_0
+      --cache-type-v q8_0
       --temp 0.7
       --min-p 0.0
       --top-p 0.8

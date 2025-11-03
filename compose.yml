@@ -11,6 +11,7 @@ services:
       - ./llama-swap/config:/app/config
     extra_hosts:
       - "host.docker.internal:host-gateway"
+    user: root
     restart: unless-stopped
 
   open-webui:
