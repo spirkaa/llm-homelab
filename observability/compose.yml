@@ -15,7 +15,7 @@ services:
     restart: unless-stopped
 
   vmsingle:
-    image: docker.io/victoriametrics/victoria-metrics:v1.128.0
+    image: docker.io/victoriametrics/victoria-metrics:v1.129.0
     ports:
       - "8428:8428"
     volumes:
