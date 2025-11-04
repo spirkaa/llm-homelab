@@ -2,8 +2,9 @@
 # https://github.com/ggml-org/llama.cpp/blob/master/tools/server/README.md
 
 healthCheckTimeout: 300
-logLevel: debug
+logLevel: info
 metricsMaxInMemory: 1000
+sendLoadingState: true
 
 macros:
   macros-docker-proxy: http://host.docker.internal:${PORT}
