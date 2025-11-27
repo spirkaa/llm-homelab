@@ -57,7 +57,7 @@ services:
     restart: unless-stopped
 
   vector:
-    image: docker.io/timberio/vector:0.50.0-distroless-libc
+    image: docker.io/timberio/vector:0.51.1-distroless-libc
     user: root
     ports:
       - "8686:8686"
