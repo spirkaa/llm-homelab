@@ -228,6 +228,30 @@ models:
       --jinja
       --mmproj /app/models/unsloth/Qwen3-VL-32B-Instruct-GGUF/mmproj-F16.gguf
 
+  qwen3-next-80b-a3b-instruct:
+    # https://docs.unsloth.ai/models/qwen3-next
+    proxy: ${macros-docker-proxy}
+    cmdStop: ${macros-docker-stop}
+    cmd: >
+      ${macros-docker-llama}
+      --model /app/models/unsloth/Qwen3-Next-80B-A3B-Instruct-GGUF/Qwen3-Next-80B-A3B-Instruct-UD-Q4_K_XL.gguf
+      --port 8080
+      --metrics
+      --mlock
+      --cont-batching
+      --flash-attn on
+      --n-gpu-layers 99
+      --n-cpu-moe 28
+      --batch-size 4096
+      --ubatch-size 2048
+      --ctx-size 45000
+      --temp 0.7
+      --min-p 0.0
+      --top-p 0.8
+      --top-k 20
+      --presence-penalty 1.0
+      --jinja
+
   glm-4.5-air-iq4-kss:
     # https://huggingface.co/ubergarm/GLM-4.5-Air-GGUF
     proxy: ${macros-docker-proxy}
