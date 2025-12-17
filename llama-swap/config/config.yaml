@@ -279,12 +279,13 @@ models:
       --top-k 40
       --chat-template chatglm4
 
-  nvidia-nemotron-nano-9b-v2:
+  nvidia-nemotron-3-nano-30b-a3b:
+    # https://docs.unsloth.ai/models/nemotron-3
     proxy: ${macros-docker-proxy}
     cmdStop: ${macros-docker-stop}
     cmd: >
       ${macros-docker-llama}
-      --model /app/models/bartowski/nvidia_NVIDIA-Nemotron-Nano-9B-v2-GGUF/nvidia_NVIDIA-Nemotron-Nano-9B-v2-Q6_K_L.gguf
+      --model /app/models/unsloth/Nemotron-3-Nano-30B-A3B-GGUF/Nemotron-3-Nano-30B-A3B-UD-Q4_K_XL.gguf
       --port 8080
       --metrics
       --mlock
@@ -293,7 +294,7 @@ models:
       --n-gpu-layers 99
       --batch-size 4096
       --ubatch-size 2048
-      --ctx-size 120000
+      --ctx-size 100000
       --temp 0.6
       --top-p 0.95
       --jinja
@@ -313,24 +314,24 @@ models:
       --batch-size 4096
       --ubatch-size 2048
       --ctx-size 65536
+      --cache-type-k q8_0
+      --cache-type-v q8_0
       --temp 0.7
       --min-p 0.01
       --top-p 0.95
       --top-k -1
       --repeat-penalty 1.0
       --jinja
-      --cache-type-k q8_0
-      --cache-type-v q8_0
       --mmproj /app/models/unsloth/Magistral-Small-2509-GGUF/mmproj-F16.gguf
       --special
 
-  granite-4.0-h-small:
-    # https://docs.unsloth.ai/new/ibm-granite-4.0
+  devstral-small-2-24b-instruct-2512:
+    # https://docs.unsloth.ai/models/devstral-2
     proxy: ${macros-docker-proxy}
     cmdStop: ${macros-docker-stop}
     cmd: >
       ${macros-docker-llama}
-      --model /app/models/unsloth/granite-4.0-h-small-GGUF/granite-4.0-h-small-UD-Q4_K_XL.gguf
+      --model /app/models/unsloth/Devstral-Small-2-24B-Instruct-2512-GGUF/Devstral-Small-2-24B-Instruct-2512-UD-Q4_K_XL.gguf
       --port 8080
       --metrics
       --mlock
@@ -339,8 +340,10 @@ models:
       --n-gpu-layers 99
       --batch-size 4096
       --ubatch-size 2048
-      --ctx-size 131072
-      --temp 0
-      --min-p 0
-      --top-p 1.0
-      --top-k 0
+      --ctx-size 65536
+      --cache-type-k q8_0
+      --cache-type-v q8_0
+      --temp 0.15
+      --min-p 0.01
+      --jinja
+      --mmproj /app/models/unsloth/Devstral-Small-2-24B-Instruct-2512-GGUF/mmproj-F16.gguf

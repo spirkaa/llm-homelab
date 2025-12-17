@@ -11,7 +11,7 @@ BASE_DIR=/home/spirkaa/.lmstudio/models
 
 HEADER="Authorization: Bearer $HF_TOKEN"
 
-URL="https://huggingface.co/unsloth/Qwen3-Next-80B-A3B-Instruct-GGUF/resolve/main/Qwen3-Next-80B-A3B-Instruct-UD-Q4_K_XL.gguf?download=true"
+URL="https://huggingface.co/unsloth/Nemotron-3-Nano-30B-A3B-GGUF/resolve/main/Nemotron-3-Nano-30B-A3B-UD-Q4_K_XL.gguf?download=true"
 
 # Strip the scheme+host
 _url_path="${URL#*://huggingface.co/}"
