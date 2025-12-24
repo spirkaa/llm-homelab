@@ -7,6 +7,6 @@ requires-python = ">=3.13"
 
 dependencies = [
   "prometheus_client==0.23.1",
-  "python-dotenv==1.1.1",
+  "python-dotenv==1.2.1",
   "requests==2.32.5",
 ]
