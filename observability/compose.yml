@@ -1,8 +1,7 @@
 services:
   grafana:
     image: docker.io/grafana/grafana:12.3.1
-    ports:
-      - "3001:3000"
+    container_name: grafana
     volumes:
       - ./grafana/data:/var/lib/grafana
       - ./grafana/provisioning/:/etc/grafana/provisioning/
@@ -12,12 +11,19 @@ services:
       - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
       - GF_AUTH_DISABLE_LOGIN_FORM=true
       - GF_INSTALL_PLUGINS=victoriametrics-logs-datasource,victoriametrics-metrics-datasource
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.grafana.rule=Host(`grafana.ai.devmem.ru`)
+      - traefik.http.services.grafana.loadbalancer.server.port=3000
+      - traefik.http.routers.grafana.entrypoints=websecure
+      - traefik.http.routers.grafana.tls=true
+    networks:
+      - traefik
     restart: unless-stopped
 
   vmsingle:
     image: docker.io/victoriametrics/victoria-metrics:v1.132.0
-    ports:
-      - "8428:8428"
+    container_name: vmsingle
     volumes:
       - ./vmsingle/data:/vmsingle
       - ./vmsingle/promscrape.yml:/promscrape.yml
@@ -32,12 +38,19 @@ services:
       interval: 10s
       timeout: 1s
       retries: 3
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.vmsingle.rule=Host(`vmsingle.ai.devmem.ru`)
+      - traefik.http.services.vmsingle.loadbalancer.server.port=8428
+      - traefik.http.routers.vmsingle.entrypoints=websecure
+      - traefik.http.routers.vmsingle.tls=true
+    networks:
+      - traefik
     restart: unless-stopped
 
   victorialogs:
     image: docker.io/victoriametrics/victoria-logs:v1.43.1
-    ports:
-      - "9428:9428"
+    container_name: victorialogs
     volumes:
       - ./victorialogs/data:/vlogs
     command:
@@ -54,13 +67,20 @@ services:
       interval: 10s
       timeout: 1s
       retries: 3
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.victorialogs.rule=Host(`victorialogs.ai.devmem.ru`)
+      - traefik.http.services.victorialogs.loadbalancer.server.port=9428
+      - traefik.http.routers.victorialogs.entrypoints=websecure
+      - traefik.http.routers.victorialogs.tls=true
+    networks:
+      - traefik
     restart: unless-stopped
 
   vector:
     image: docker.io/timberio/vector:0.52.0-distroless-libc
+    container_name: vector
     user: root
-    ports:
-      - "8686:8686"
     volumes:
       - type: bind
         source: /var/run/docker.sock
@@ -74,10 +94,13 @@ services:
         condition: service_healthy
       vmsingle:
         condition: service_healthy
+    networks:
+      - traefik
     restart: unless-stopped
 
   cadvisor:
     image: gcr.io/cadvisor/cadvisor:v0.55.1
+    container_name: cadvisor
     volumes:
       - /:/rootfs:ro
       - /var/run:/var/run:ro
@@ -85,10 +108,13 @@ services:
       - /var/lib/docker/:/var/lib/docker:ro
       - /dev/disk/:/dev/disk:ro
     privileged: true
+    networks:
+      - traefik
     restart: unless-stopped
 
   node-exporter:
     image: docker.io/prom/node-exporter:v1.10.2
+    container_name: node-exporter
     volumes:
       - /proc:/host/proc:ro
       - /sys:/host/sys:ro
@@ -102,10 +128,13 @@ services:
       - "--collector.systemd"
       - "--collector.processes"
     pid: host
+    networks:
+      - traefik
     restart: unless-stopped
 
   nvitop-exporter:
     image: git.devmem.ru/projects/llm-homelab/nvitop-exporter
+    container_name: nvitop-exporter
     build:
       context: nvitop-exporter
       dockerfile: Dockerfile
@@ -123,20 +152,27 @@ services:
       interval: 10s
       timeout: 1s
       retries: 3
+    networks:
+      - traefik
     restart: unless-stopped
 
   llama-swap-exporter:
     image: git.devmem.ru/projects/llm-homelab/llama-swap-exporter
+    container_name: llama-swap-exporter
     build:
       context: llama-swap-exporter
       dockerfile: Dockerfile
     environment:
-      - LLAMA_SWAP_BASE_URL=http://host.docker.internal:8080
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
+      - LLAMA_SWAP_BASE_URL=http://llama-swap:8080
     healthcheck:
       test: ["CMD", "wget", "-qO-", "http://127.0.0.1:8081/"]
       interval: 10s
       timeout: 1s
       retries: 3
+    networks:
+      - traefik
     restart: unless-stopped
+
+networks:
+  traefik:
+    external: true

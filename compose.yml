@@ -1,33 +1,113 @@
 services:
   llama-swap:
     image: git.devmem.ru/projects/llm-homelab/llama-swap
+    container_name: llama-swap
     build:
       context: llama-swap
       dockerfile: Dockerfile
-    ports:
-      - "8080:8080"
+    user: root
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - ./llama-swap/config:/app/config
     extra_hosts:
-      - "host.docker.internal:host-gateway"
-    user: root
+      - host.docker.internal:host-gateway
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.llama-swap.rule=Host(`llama-swap.ai.devmem.ru`)
+      - traefik.http.services.llama-swap.loadbalancer.server.port=8080
+      - traefik.http.routers.llama-swap.entrypoints=websecure
+      - traefik.http.routers.llama-swap.tls=true
+    networks:
+      - traefik
     restart: unless-stopped
 
   open-webui:
     image: ghcr.io/open-webui/open-webui:main
     pull_policy: always
+    container_name: open-webui
     depends_on:
       - llama-swap
-    ports:
-      - "3000:3000"
     volumes:
       - ./open-webui/data:/app/backend/data
     environment:
-      - WEBUI_AUTH=False
       - PORT=3000
+      - WEBUI_AUTH=True
       - ENABLE_OPENAI_API=True
       - OPENAI_API_BASE_URL=http://llama-swap:8080/v1
       - ENABLE_OLLAMA_API=False
       - HF_HUB_OFFLINE=1
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.open-webui.rule=Host(`chat.ai.devmem.ru`)
+      - traefik.http.services.open-webui.loadbalancer.server.port=3000
+      - traefik.http.routers.open-webui.entrypoints=websecure
+      - traefik.http.routers.open-webui.tls=true
+    networks:
+      - traefik
     restart: unless-stopped
+
+  traefik:
+    image: docker.io/library/traefik:3
+    pull_policy: always
+    container_name: traefik
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./traefik/dyn.toml:/etc/traefik/dyn.toml
+      - ./traefik/certs:/etc/traefik/certs
+    command:
+      - --log.level=ERROR
+      - --accesslog=true
+      - --accesslog.format=json
+      - --accesslog.fields.headers.defaultmode=keep
+      - --accesslog.fields.headers.names.Cookie=redact
+      - --accesslog.fields.headers.names.Authorization=redact
+      - --api=true
+      - --ping=true
+      - --metrics.prometheus=true
+      - --providers.file.filename=/etc/traefik/dyn.toml
+      - --providers.docker=true
+      - --providers.docker.exposedbydefault=false
+      - --entrypoints.web.address=:80
+      - --entrypoints.web.http.redirections.entryPoint.to=websecure
+      - --entrypoints.web.http.redirections.entryPoint.scheme=https
+      - --entrypoints.websecure.address=:443
+      - --entrypoints.websecure.forwardedHeaders.trustedIPs=10.255.255.1
+      - --serverstransport.insecureskipverify=true
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.traefik.rule=Host(`traefik.ai.devmem.ru`)
+      - traefik.http.routers.traefik.service=api@internal
+      - traefik.http.routers.traefik.entrypoints=websecure
+      - traefik.http.routers.traefik.tls=true
+    healthcheck:
+      test: ["CMD", "traefik", "healthcheck", "--ping"]
+      interval: 10s
+      timeout: 1s
+      retries: 3
+    networks:
+      - traefik
+    restart: unless-stopped
+
+  traefik-home:
+    image: ghcr.io/santimar/traefik-home:v1.5.0
+    container_name: traefik-home
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.traefik-home.rule=Host(`ai.devmem.ru`)
+      - traefik.http.services.traefik-home.loadbalancer.server.port=80
+      - traefik.http.routers.traefik-home.entrypoints=websecure
+      - traefik.http.routers.traefik-home.tls=true
+      - traefik-home.sort-by=name
+      - traefik-home.show-footer=false
+    networks:
+      - traefik
+    restart: unless-stopped
+
+networks:
+  traefik:
+    external: true
