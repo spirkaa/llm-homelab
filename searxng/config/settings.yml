@@ -1,0 +1,18 @@
+use_default_settings: true
+
+search:
+  autocomplete: google
+  formats:
+    - html
+    - json
+
+server:
+  secret_key: fake  # Is overwritten by ${SEARXNG_SECRET}
+
+engines:
+  - name: wolframalpha
+    disabled: false
+  - name: yandex
+    disabled: false
+  - name: yandex images
+    disabled: false

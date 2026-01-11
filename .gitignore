@@ -5,3 +5,5 @@ llama.cpp/*
 !llama.cpp/.devops/cuda.Dockerfile
 
 **/data/*
+
+.env

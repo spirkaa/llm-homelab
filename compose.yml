@@ -21,12 +21,34 @@ services:
       - traefik
     restart: unless-stopped
 
+  searxng:
+    image: ghcr.io/searxng/searxng:latest
+    pull_policy: always
+    container_name: searxng
+    volumes:
+      - ./searxng/config:/etc/searxng
+      - ./searxng/data:/var/cache/searxng
+    env_file:
+      - .env
+    environment:
+      - SEARXNG_BASE_URL=https://searxng.ai.devmem.ru
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.searxng.rule=Host(`searxng.ai.devmem.ru`)
+      - traefik.http.services.searxng.loadbalancer.server.port=8080
+      - traefik.http.routers.searxng.entrypoints=websecure
+      - traefik.http.routers.searxng.tls=true
+    networks:
+      - traefik
+    restart: unless-stopped
+
   open-webui:
     image: ghcr.io/open-webui/open-webui:main
     pull_policy: always
     container_name: open-webui
     depends_on:
       - llama-swap
+      - searxng
     volumes:
       - ./open-webui/data:/app/backend/data
     environment:
@@ -36,12 +58,38 @@ services:
       - OPENAI_API_BASE_URL=http://llama-swap:8080/v1
       - ENABLE_OLLAMA_API=False
       - HF_HUB_OFFLINE=1
+      - ENABLE_RAG_WEB_SEARCH=True
+      - RAG_WEB_SEARCH_ENGINE=searxng
+      - RAG_WEB_SEARCH_RESULT_COUNT=3
+      - RAG_WEB_SEARCH_CONCURRENT_REQUESTS=10
+      - SEARXNG_QUERY_URL=http://searxng:8080/search?q=<query>
     labels:
       - traefik.enable=true
       - traefik.http.routers.open-webui.rule=Host(`chat.ai.devmem.ru`)
       - traefik.http.services.open-webui.loadbalancer.server.port=3000
       - traefik.http.routers.open-webui.entrypoints=websecure
       - traefik.http.routers.open-webui.tls=true
+    networks:
+      - traefik
+    restart: unless-stopped
+
+  perplexica:
+    image: docker.io/itzcrazykns1337/perplexica:slim-latest
+    pull_policy: always
+    container_name: perplexica
+    depends_on:
+      - llama-swap
+      - searxng
+    volumes:
+      - ./perplexica/data:/home/perplexica/data
+    environment:
+      - SEARXNG_API_URL=http://searxng:8080
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.perplexica.rule=Host(`perplexica.ai.devmem.ru`)
+      - traefik.http.services.perplexica.loadbalancer.server.port=3000
+      - traefik.http.routers.perplexica.entrypoints=websecure
+      - traefik.http.routers.perplexica.tls=true
     networks:
       - traefik
     restart: unless-stopped
