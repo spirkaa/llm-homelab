@@ -215,8 +215,8 @@ models:
       --flash-attn on
       --n-gpu-layers 99
       --batch-size 2048
-      --ubatch-size 2048
-      --ctx-size 40000
+      --ubatch-size 1024
+      --ctx-size 30000
       --cache-type-k q8_0
       --cache-type-v q8_0
       --temp 0.7
@@ -278,6 +278,27 @@ models:
       --top-p 0.95
       --top-k 40
       --chat-template chatglm4
+
+  glm-4.7-flash-30b-a3b:
+    # https://unsloth.ai/docs/models/glm-4.7-flash
+    proxy: ${macros-docker-proxy}
+    cmdStop: ${macros-docker-stop}
+    cmd: >
+      ${macros-docker-llama}
+      --model /app/models/unsloth/GLM-4.7-Flash-GGUF/GLM-4.7-Flash-UD-Q4_K_XL.gguf
+      --port 8080
+      --metrics
+      --mlock
+      --cont-batching
+      --flash-attn on
+      --n-gpu-layers 99
+      --batch-size 2048
+      --ubatch-size 1024
+      --ctx-size 45000
+      --temp 0.7
+      --min-p 0.01
+      --top-p 1.0
+      --jinja
 
   nvidia-nemotron-3-nano-30b-a3b:
     # https://docs.unsloth.ai/models/nemotron-3
