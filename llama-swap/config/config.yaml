@@ -294,7 +294,7 @@ models:
       --n-gpu-layers 99
       --batch-size 2048
       --ubatch-size 1024
-      --ctx-size 45000
+      --ctx-size 90000
       --temp 0.7
       --min-p 0.01
       --top-p 1.0
