@@ -252,6 +252,29 @@ models:
       --presence-penalty 1.0
       --jinja
 
+  qwen3-coder-next-80b-a3b:
+    # https://unsloth.ai/docs/models/qwen3-coder-next
+    proxy: ${macros-docker-proxy}
+    cmdStop: ${macros-docker-stop}
+    cmd: >
+      ${macros-docker-llama}
+      --model /app/models/unsloth/Qwen3-Coder-Next-GGUF/Qwen3-Coder-Next-UD-Q4_K_XL.gguf
+      --port 8080
+      --metrics
+      --mlock
+      --cont-batching
+      --flash-attn on
+      --n-gpu-layers 99
+      --n-cpu-moe 27
+      --batch-size 2048
+      --ubatch-size 1024
+      --ctx-size 65536
+      --temp 1.0
+      --min-p 0.01
+      --top-p 0.95
+      --top-k 40
+      --jinja
+
   glm-4.5-air-iq4-kss:
     # https://huggingface.co/ubergarm/GLM-4.5-Air-GGUF
     proxy: ${macros-docker-proxy}
