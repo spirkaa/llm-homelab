@@ -38,7 +38,7 @@ groups:
 
 models:
   gemma-3-27b-it-qat:
-    # https://docs.unsloth.ai/basics/gemma-3-how-to-run-and-fine-tune
+    # https://unsloth.ai/docs/models/gemma-3-how-to-run-and-fine-tune
     proxy: ${macros-docker-proxy}
     cmdStop: ${macros-docker-stop}
     cmd: >
@@ -60,7 +60,7 @@ models:
       --mmproj /app/models/google/gemma-3-27b-it-qat-q4_0-gguf/mmproj-model-f16-27B.gguf
 
   gpt-oss-120b:
-    # https://docs.unsloth.ai/basics/gpt-oss-how-to-run-and-fine-tune
+    # https://unsloth.ai/docs/models/gpt-oss-how-to-run-and-fine-tune
     proxy: ${macros-docker-proxy}
     cmdStop: ${macros-docker-stop}
     cmd: >
@@ -85,7 +85,7 @@ models:
       --grammar-file /app/config/gpt-oss-vscode.gbnf
 
   gpt-oss-20b:
-    # https://docs.unsloth.ai/basics/gpt-oss-how-to-run-and-fine-tune
+    # https://unsloth.ai/docs/models/gpt-oss-how-to-run-and-fine-tune
     proxy: ${macros-docker-proxy}
     cmdStop: ${macros-docker-stop}
     cmd: >
@@ -110,7 +110,7 @@ models:
       --parallel 2
 
   qwen3-0.6b:
-    # https://docs.unsloth.ai/basics/qwen3-how-to-run-and-fine-tune/qwen3-2507
+    # https://unsloth.ai/docs/models/qwen3-how-to-run-and-fine-tune
     proxy: ${macros-docker-proxy}
     cmdStop: ${macros-docker-stop}
     cmd: >
@@ -135,7 +135,7 @@ models:
       --jinja
 
   qwen3-coder-30b-a3b-instruct:
-    # https://docs.unsloth.ai/basics/qwen3-coder-how-to-run-locally
+    # https://unsloth.ai/docs/models/qwen3-coder-how-to-run-locally
     proxy: ${macros-docker-proxy}
     cmdStop: ${macros-docker-stop}
     cmd: >
@@ -158,7 +158,7 @@ models:
       --jinja
 
   qwen3-30b-a3b-instruct-2507:
-    # https://docs.unsloth.ai/basics/qwen3-how-to-run-and-fine-tune/qwen3-2507
+    # https://unsloth.ai/docs/models/qwen3-how-to-run-and-fine-tune/qwen3-2507
     proxy: ${macros-docker-proxy}
     cmdStop: ${macros-docker-stop}
     cmd: >
@@ -180,7 +180,7 @@ models:
       --jinja
 
   qwen3-30b-a3b-thinking-2507:
-    # https://docs.unsloth.ai/basics/qwen3-how-to-run-and-fine-tune/qwen3-2507
+    # https://unsloth.ai/docs/models/qwen3-how-to-run-and-fine-tune/qwen3-2507
     proxy: ${macros-docker-proxy}
     cmdStop: ${macros-docker-stop}
     cmd: >
@@ -202,7 +202,7 @@ models:
       --jinja
 
   qwen3-vl-32b:
-    # https://docs.unsloth.ai/models/qwen3-vl-run-and-fine-tune
+    # https://unsloth.ai/docs/models/qwen3-how-to-run-and-fine-tune/qwen3-vl-how-to-run-and-fine-tune
     proxy: ${macros-docker-proxy}
     cmdStop: ${macros-docker-stop}
     cmd: >
@@ -229,7 +229,7 @@ models:
       --mmproj /app/models/unsloth/Qwen3-VL-32B-Instruct-GGUF/mmproj-F16.gguf
 
   qwen3-next-80b-a3b-instruct:
-    # https://docs.unsloth.ai/models/qwen3-next
+    # https://unsloth.ai/docs/models/tutorials/qwen3-next
     proxy: ${macros-docker-proxy}
     cmdStop: ${macros-docker-stop}
     cmd: >
@@ -265,7 +265,7 @@ models:
       --cont-batching
       --flash-attn on
       --n-gpu-layers 99
-      --n-cpu-moe 27
+      --n-cpu-moe 28
       --batch-size 2048
       --ubatch-size 1024
       --ctx-size 65536
@@ -274,6 +274,56 @@ models:
       --top-p 0.95
       --top-k 40
       --jinja
+
+  qwen3.5-27b:
+    # https://unsloth.ai/docs/models/qwen3.5
+    proxy: ${macros-docker-proxy}
+    cmdStop: ${macros-docker-stop}
+    cmd: >
+      ${macros-docker-llama}
+      --model /app/models/unsloth/Qwen3.5-27B-GGUF/Qwen3.5-27B-UD-Q4_K_XL.gguf
+      --port 8080
+      --metrics
+      --mlock
+      --cont-batching
+      --flash-attn on
+      --n-gpu-layers 99
+      --batch-size 2048
+      --ubatch-size 1024
+      --ctx-size 65536
+      --temp 0.6
+      --min-p 0.00
+      --top-p 0.95
+      --top-k 20
+      --presence_penalty 0.0
+      --repetition_penalty 1.0
+      --jinja
+      --mmproj /app/models/unsloth/Qwen3.5-27B-GGUF/mmproj-F16.gguf
+
+  qwen3.5-35b-a3b:
+    # https://unsloth.ai/docs/models/qwen3.5
+    proxy: ${macros-docker-proxy}
+    cmdStop: ${macros-docker-stop}
+    cmd: >
+      ${macros-docker-llama}
+      --model /app/models/unsloth/Qwen3.5-35B-A3B-GGUF/Qwen3.5-35B-A3B-MXFP4_MOE.gguf
+      --port 8080
+      --metrics
+      --mlock
+      --cont-batching
+      --flash-attn on
+      --n-gpu-layers 99
+      --batch-size 2048
+      --ubatch-size 1024
+      --ctx-size 131072
+      --temp 0.6
+      --min-p 0.00
+      --top-p 0.95
+      --top-k 20
+      --presence-penalty 0.0
+      --repeat-penalty 1.0
+      --jinja
+      --mmproj /app/models/unsloth/Qwen3.5-35B-A3B-GGUF/mmproj-F16.gguf
 
   glm-4.5-air-iq4-kss:
     # https://huggingface.co/ubergarm/GLM-4.5-Air-GGUF
@@ -324,7 +374,7 @@ models:
       --jinja
 
   nvidia-nemotron-3-nano-30b-a3b:
-    # https://docs.unsloth.ai/models/nemotron-3
+    # https://unsloth.ai/docs/models/tutorials/nemotron-3
     proxy: ${macros-docker-proxy}
     cmdStop: ${macros-docker-stop}
     cmd: >
@@ -344,6 +394,7 @@ models:
       --jinja
 
   magistral-small-2509:
+    # https://unsloth.ai/docs/models/tutorials/magistral-how-to-run-and-fine-tune
     proxy: ${macros-docker-proxy}
     cmdStop: ${macros-docker-stop}
     cmd: >
@@ -370,7 +421,7 @@ models:
       --special
 
   devstral-small-2-24b-instruct-2512:
-    # https://docs.unsloth.ai/models/devstral-2
+    # https://unsloth.ai/docs/models/tutorials/devstral-2
     proxy: ${macros-docker-proxy}
     cmdStop: ${macros-docker-stop}
     cmd: >
