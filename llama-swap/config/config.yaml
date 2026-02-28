@@ -1,10 +1,12 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/mostlygeek/llama-swap/refs/heads/main/config-schema.json
+
 # https://github.com/mostlygeek/llama-swap/wiki/Configuration
 # https://github.com/ggml-org/llama.cpp/blob/master/tools/server/README.md
 
 healthCheckTimeout: 300
 logLevel: info
-metricsMaxInMemory: 1000
 sendLoadingState: true
+includeAliasesInList: true
 
 macros:
   macros-docker-proxy: http://host.docker.internal:${PORT}
@@ -155,14 +157,11 @@ models:
       --model /app/models/unsloth/Qwen3-VL-32B-Instruct-GGUF/Qwen3-VL-32B-Instruct-UD-Q3_K_XL.gguf
       --metrics
       --mlock
-      --fit-target 1536
-      --cache-type-k q8_0
-      --cache-type-v q8_0
+      --fit-target 3072
       --temp 0.7
       --min-p 0.0
       --top-p 0.8
       --top-k 20
-      --repeat-penalty 1.0
       --presence-penalty 1.5
       --jinja
       --mmproj /app/models/unsloth/Qwen3-VL-32B-Instruct-GGUF/mmproj-F16.gguf
@@ -219,14 +218,31 @@ models:
       --mlock
       --fit-target 1536
       --fit-ctx 65536
-      --temp 1.0
-      --min-p 0.00
-      --top-p 0.95
-      --top-k 20
-      --presence-penalty 1.5
-      --repeat-penalty 1.0
       --jinja
       --mmproj /app/models/unsloth/Qwen3.5-27B-GGUF/mmproj-F16.gguf
+    aliases:
+      - qwen3.5-27b:coding
+      - qwen3.5-27b:instruct
+      - qwen3.5-27b:instruct-reasoning
+    filters:
+      setParams:
+        temperature: 1.0
+        min_p: 0.00
+        top_p: 0.95
+        top_k: 20
+        presence_penalty: 1.5
+      setParamsByID:
+        "${MODEL_ID}:coding":
+          temperature: 0.6
+          presence_penalty: 0.0
+        "${MODEL_ID}:instruct":
+          temperature: 0.7
+          top_p: 0.8
+          chat_template_kwargs:
+            enable_thinking: false
+        "${MODEL_ID}:instruct-reasoning":
+          chat_template_kwargs:
+            enable_thinking: false
 
   qwen3.5-35b-a3b:
     # https://unsloth.ai/docs/models/qwen3.5
@@ -239,14 +255,31 @@ models:
       --mlock
       --fit-target 1536
       --fit-ctx 65536
-      --temp 0.6
-      --min-p 0.00
-      --top-p 0.95
-      --top-k 20
-      --presence-penalty 0.0
-      --repeat-penalty 1.0
       --jinja
       --mmproj /app/models/unsloth/Qwen3.5-35B-A3B-GGUF/mmproj-F16.gguf
+    aliases:
+      - qwen3.5-35b-a3b:coding
+      - qwen3.5-35b-a3b:instruct
+      - qwen3.5-35b-a3b:instruct-reasoning
+    filters:
+      setParams:
+        temperature: 1.0
+        min_p: 0.00
+        top_p: 0.95
+        top_k: 20
+        presence_penalty: 1.5
+      setParamsByID:
+        "${MODEL_ID}:coding":
+          temperature: 0.6
+          presence_penalty: 0.0
+        "${MODEL_ID}:instruct":
+          temperature: 0.7
+          top_p: 0.8
+          chat_template_kwargs:
+            enable_thinking: false
+        "${MODEL_ID}:instruct-reasoning":
+          chat_template_kwargs:
+            enable_thinking: false
 
   glm-4.5-air-iq4-kss:
     # https://huggingface.co/ubergarm/GLM-4.5-Air-GGUF
@@ -282,10 +315,18 @@ models:
       --model /app/models/unsloth/GLM-4.7-Flash-GGUF/GLM-4.7-Flash-UD-Q4_K_XL.gguf
       --metrics
       --mlock
-      --temp 0.7
-      --min-p 0.01
-      --top-p 1.0
       --jinja
+    aliases:
+      - glm-4.7-flash-30b-a3b:tools
+    filters:
+      setParams:
+        temperature: 1.0
+        min_p: 0.01
+        top_p: 0.95
+      setParamsByID:
+        "${MODEL_ID}:tools":
+          temperature: 0.7
+          top_p: 1.0
 
   nvidia-nemotron-3-nano-30b-a3b:
     # https://unsloth.ai/docs/models/tutorials/nemotron-3
@@ -296,9 +337,17 @@ models:
       --model /app/models/unsloth/Nemotron-3-Nano-30B-A3B-GGUF/Nemotron-3-Nano-30B-A3B-UD-Q4_K_XL.gguf
       --metrics
       --mlock
-      --temp 0.6
-      --top-p 0.95
       --jinja
+    aliases:
+      - nvidia-nemotron-3-nano-30b-a3b:tools
+    filters:
+      setParams:
+        temperature: 1.0
+        top_p: 1.0
+      setParamsByID:
+        "${MODEL_ID}:tools":
+          temperature: 0.6
+          top_p: 0.95
 
   devstral-small-2-24b-instruct-2512:
     # https://unsloth.ai/docs/models/tutorials/devstral-2
