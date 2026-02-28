@@ -49,7 +49,7 @@ services:
     restart: unless-stopped
 
   victorialogs:
-    image: docker.io/victoriametrics/victoria-logs:v1.45.0
+    image: docker.io/victoriametrics/victoria-logs:v1.47.0
     container_name: victorialogs
     volumes:
       - ./victorialogs/data:/vlogs
