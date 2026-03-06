@@ -20,6 +20,15 @@ macros:
       -v /home/spirkaa/projects/llm-homelab/llama-swap/config:/app/config
       -p ${PORT}:8080
       git.devmem.ru/projects/llm-homelab/llama.cpp:server-cuda
+  macros-docker-llama-no-gpu: >
+    docker run
+      --init --rm
+      --name model-${MODEL_ID}
+      --ipc=host --ulimit memlock=-1
+      -v /home/spirkaa/.lmstudio/models:/app/models
+      -v /home/spirkaa/projects/llm-homelab/llama-swap/config:/app/config
+      -p ${PORT}:8080
+      git.devmem.ru/projects/llm-homelab/llama.cpp:server-cuda
   macros-docker-ik-llama: >
     docker run
       --init --rm
@@ -36,7 +45,7 @@ groups:
     swap: false
     exclusive: false
     members:
-      - qwen3-0.6b
+      - qwen3.5-0.8b
 
 models:
   gemma-3-27b-it-qat:
@@ -94,26 +103,6 @@ models:
       --jinja
       --chat-template-kwargs '{"reasoning_effort": "medium"}'
       --grammar-file /app/config/gpt-oss-vscode.gbnf
-
-  qwen3-0.6b:
-    # https://unsloth.ai/docs/models/qwen3-how-to-run-and-fine-tune
-    proxy: ${macros-docker-proxy}
-    cmdStop: ${macros-docker-stop}
-    cmd: >
-      ${macros-docker-llama}
-      --model /app/models/unsloth/Qwen3-0.6B-GGUF/Qwen3-0.6B-UD-Q4_K_XL.gguf
-      --metrics
-      --mlock
-      --n-gpu-layers 99
-      --ctx-size 16382
-      --cache-type-k q8_0
-      --cache-type-v q8_0
-      --temp 0.7
-      --min-p 0.0
-      --top-p 0.8
-      --top-k 20
-      --jinja
-      --threads 4
 
   qwen3-coder-30b-a3b-instruct:
     # https://unsloth.ai/docs/models/qwen3-coder-how-to-run-locally
@@ -206,6 +195,28 @@ models:
       --top-p 0.95
       --top-k 40
       --jinja
+
+  qwen3.5-0.8b:
+    # https://unsloth.ai/docs/models/qwen3.5
+    proxy: ${macros-docker-proxy}
+    cmdStop: ${macros-docker-stop}
+    cmd: >
+      ${macros-docker-llama-no-gpu}
+      --model /app/models/unsloth/Qwen3.5-0.8B-GGUF/Qwen3.5-0.8B-Q8_0.gguf
+      --metrics
+      --mlock
+      --ctx-size 16382
+      --threads 8
+      --jinja
+    filters:
+      setParams:
+        temperature: 0.7
+        min_p: 0.00
+        top_p: 0.8
+        top_k: 20
+        presence_penalty: 1.5
+        chat_template_kwargs:
+          enable_thinking: false
 
   qwen3.5-27b:
     # https://unsloth.ai/docs/models/qwen3.5
