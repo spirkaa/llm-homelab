@@ -57,12 +57,14 @@ models:
       --model /app/models/google/gemma-3-27b-it-qat-q4_0-gguf/gemma-3-27b-it-q4_0.gguf
       --metrics
       --mlock
-      --fit-target 3072
-      --temp 1.0
-      --min-p 0.0
-      --top-p 0.95
-      --top-k 64
+      --fit-target 2048
       --mmproj /app/models/google/gemma-3-27b-it-qat-q4_0-gguf/mmproj-model-f16-27B.gguf
+    filters:
+      setParams:
+        temperature: 1.0
+        min_p: 0.0
+        top_p: 0.95
+        top_k: 64
 
   gpt-oss-120b:
     # https://unsloth.ai/docs/models/gpt-oss-how-to-run-and-fine-tune
@@ -74,17 +76,23 @@ models:
       --metrics
       --mlock
       --n-gpu-layers 99
-      --n-cpu-moe 27
-      --batch-size 4096
-      --ubatch-size 2048
-      --ctx-size 100000
-      --temp 1.0
-      --min-p 0.0
-      --top-p 1.0
-      --top-k 0.0
+      --n-cpu-moe 26
       --jinja
-      --chat-template-kwargs '{"reasoning_effort": "medium"}'
       --grammar-file /app/config/gpt-oss-vscode.gbnf
+    aliases:
+      - gpt-oss-120b:high
+    filters:
+      setParams:
+        temperature: 1.0
+        min_p: 0.0
+        top_p: 1.0
+        top_k: 0.0
+        chat_template_kwargs:
+          reasoning_effort: medium
+      setParamsByID:
+        "${MODEL_ID}:high":
+          chat_template_kwargs:
+            reasoning_effort: high
 
   gpt-oss-20b:
     # https://unsloth.ai/docs/models/gpt-oss-how-to-run-and-fine-tune
@@ -95,14 +103,22 @@ models:
       --model /app/models/unsloth/gpt-oss-20b-GGUF/gpt-oss-20b-F16.gguf
       --metrics
       --mlock
-      --fit-target 2048
-      --temp 1.0
-      --min-p 0.0
-      --top-p 1.0
-      --top-k 0.0
       --jinja
-      --chat-template-kwargs '{"reasoning_effort": "medium"}'
       --grammar-file /app/config/gpt-oss-vscode.gbnf
+    aliases:
+      - gpt-oss-20b:high
+    filters:
+      setParams:
+        temperature: 1.0
+        min_p: 0.0
+        top_p: 1.0
+        top_k: 0.0
+        chat_template_kwargs:
+          reasoning_effort: medium
+      setParamsByID:
+        "${MODEL_ID}:high":
+          chat_template_kwargs:
+            reasoning_effort: high
 
   qwen3-coder-30b-a3b-instruct:
     # https://unsloth.ai/docs/models/qwen3-coder-how-to-run-locally
@@ -113,13 +129,14 @@ models:
       --model /app/models/unsloth/Qwen3-Coder-30B-A3B-Instruct-GGUF/Qwen3-Coder-30B-A3B-Instruct-UD-Q4_K_XL.gguf
       --metrics
       --mlock
-      --fit-target 2048
-      --temp 0.7
-      --min-p 0.0
-      --top-p 0.8
-      --top-k 20
-      --repeat-penalty 1.05
       --jinja
+    filters:
+      setParams:
+        temperature: 0.7
+        min_p: 0.0
+        top_p: 0.8
+        top_k: 20
+        repetition_penalty: 1.05
 
   qwen3-30b-a3b-instruct-2507:
     # https://unsloth.ai/docs/models/qwen3-how-to-run-and-fine-tune/qwen3-2507
@@ -130,12 +147,13 @@ models:
       --model /app/models/unsloth/Qwen3-30B-A3B-Instruct-2507-GGUF/Qwen3-30B-A3B-Instruct-2507-UD-Q4_K_XL.gguf
       --metrics
       --mlock
-      --fit-target 2048
-      --temp 0.7
-      --min-p 0.0
-      --top-p 0.8
-      --top-k 20
       --jinja
+    filters:
+      setParams:
+        temperature: 0.7
+        min_p: 0.0
+        top_p: 0.8
+        top_k: 20
 
   qwen3-vl-32b:
     # https://unsloth.ai/docs/models/qwen3-how-to-run-and-fine-tune/qwen3-vl-how-to-run-and-fine-tune
@@ -147,13 +165,15 @@ models:
       --metrics
       --mlock
       --fit-target 3072
-      --temp 0.7
-      --min-p 0.0
-      --top-p 0.8
-      --top-k 20
-      --presence-penalty 1.5
       --jinja
       --mmproj /app/models/unsloth/Qwen3-VL-32B-Instruct-GGUF/mmproj-F16.gguf
+    filters:
+      setParams:
+        temperature: 0.7
+        min_p: 0.0
+        top_p: 0.8
+        top_k: 20
+        presence_penalty: 1.5
 
   qwen3-next-80b-a3b-instruct:
     # https://unsloth.ai/docs/models/tutorials/qwen3-next
@@ -165,16 +185,16 @@ models:
       --metrics
       --mlock
       --n-gpu-layers 99
-      --n-cpu-moe 28
-      --batch-size 4096
-      --ubatch-size 2048
-      --ctx-size 45000
-      --temp 0.7
-      --min-p 0.0
-      --top-p 0.8
-      --top-k 20
-      --presence-penalty 1.0
+      --n-cpu-moe 26
+      --ctx-size 65536
       --jinja
+    filters:
+      setParams:
+        temperature: 0.7
+        min_p: 0.0
+        top_p: 0.8
+        top_k: 20
+        presence_penalty: 1.0
 
   qwen3-coder-next-80b-a3b:
     # https://unsloth.ai/docs/models/qwen3-coder-next
@@ -186,15 +206,15 @@ models:
       --metrics
       --mlock
       --n-gpu-layers 99
-      --n-cpu-moe 28
-      --batch-size 2048
-      --ubatch-size 1024
+      --n-cpu-moe 26
       --ctx-size 65536
-      --temp 1.0
-      --min-p 0.01
-      --top-p 0.95
-      --top-k 40
       --jinja
+    filters:
+      setParams:
+        temperature: 1.0
+        min_p: 0.01
+        top_p: 0.95
+        top_k: 40
 
   qwen3.5-0.8b:
     # https://unsloth.ai/docs/models/qwen3.5
@@ -205,13 +225,13 @@ models:
       --model /app/models/unsloth/Qwen3.5-0.8B-GGUF/Qwen3.5-0.8B-Q8_0.gguf
       --metrics
       --mlock
-      --ctx-size 16382
+      --ctx-size 32768
       --threads 8
       --jinja
     filters:
       setParams:
         temperature: 0.7
-        min_p: 0.00
+        min_p: 0.0
         top_p: 0.8
         top_k: 20
         presence_penalty: 1.5
@@ -238,7 +258,7 @@ models:
     filters:
       setParams:
         temperature: 1.0
-        min_p: 0.00
+        min_p: 0.0
         top_p: 0.95
         top_k: 20
         presence_penalty: 1.5
@@ -275,7 +295,7 @@ models:
     filters:
       setParams:
         temperature: 1.0
-        min_p: 0.00
+        min_p: 0.0
         top_p: 0.95
         top_k: 20
         presence_penalty: 1.5
@@ -369,7 +389,9 @@ models:
       --model /app/models/unsloth/Devstral-Small-2-24B-Instruct-2512-GGUF/Devstral-Small-2-24B-Instruct-2512-UD-Q4_K_XL.gguf
       --metrics
       --mlock
-      --temp 0.15
-      --min-p 0.01
       --jinja
       --mmproj /app/models/unsloth/Devstral-Small-2-24B-Instruct-2512-GGUF/mmproj-F16.gguf
+    filters:
+      setParams:
+        temperature: 0.15
+        min_p: 0.01
