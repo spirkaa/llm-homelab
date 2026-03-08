@@ -206,8 +206,8 @@ models:
       --metrics
       --mlock
       --n-gpu-layers 99
-      --n-cpu-moe 26
-      --ctx-size 65536
+      --n-cpu-moe 29
+      --ctx-size 100000
       --jinja
     filters:
       setParams:
@@ -285,7 +285,7 @@ models:
       --metrics
       --mlock
       --fit-target 1536
-      --fit-ctx 65536
+      --fit-ctx 131072
       --jinja
       --mmproj /app/models/unsloth/Qwen3.5-35B-A3B-GGUF/mmproj-F16.gguf
     aliases:
