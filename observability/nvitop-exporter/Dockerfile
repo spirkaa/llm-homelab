@@ -1,6 +1,6 @@
 # hadolint global ignore=DL3008
 
-FROM ghcr.io/astral-sh/uv:python3.13-bookworm-slim
+FROM ghcr.io/astral-sh/uv:python3.14-trixie-slim
 
 ENV PYTHONUNBUFFERED=1
 ENV PYTHONDONTWRITEBYTECODE=1

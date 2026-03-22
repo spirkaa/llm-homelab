@@ -15,17 +15,17 @@ repos:
       - id: check-yaml
         args: [--unsafe]
   - repo: https://github.com/igorshubovych/markdownlint-cli
-    rev: v0.47.0
+    rev: v0.48.0
     hooks:
       - id: markdownlint
         args: [--fix, --disable, MD013, MD033, --]
   - repo: https://github.com/adrienverge/yamllint
-    rev: v1.37.1
+    rev: v1.38.0
     hooks:
       - id: yamllint
         args: [-s, -d, "{extends: default, rules: {line-length: disable, document-start: disable, indentation: {spaces: 2, indent-sequences: consistent}}}"]
   - repo: https://github.com/macisamuele/language-formatters-pre-commit-hooks
-    rev: v2.15.0
+    rev: v2.16.0
     hooks:
       - id: pretty-format-yaml
         args: [--autofix, --preserve-quotes, --offset, '2']
@@ -40,7 +40,7 @@ repos:
       - id: shfmt
         args: ["-i 2", "-ci"]
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.14.10
+    rev: v0.15.7
     hooks:
       - id: ruff-check
         args: [--fix]

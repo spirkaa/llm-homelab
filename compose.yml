@@ -123,6 +123,7 @@ services:
       - --entrypoints.web.http.redirections.entryPoint.scheme=https
       - --entrypoints.websecure.address=:443
       - --entrypoints.websecure.forwardedHeaders.trustedIPs=10.255.255.1
+      - --entrypoints.websecure.transport.respondingTimeouts.readTimeout=300s
       - --serverstransport.insecureskipverify=true
     labels:
       - traefik.enable=true

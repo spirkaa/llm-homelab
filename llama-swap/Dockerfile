@@ -1,4 +1,4 @@
-FROM docker:28-cli AS docker-cli
+FROM docker:29-cli AS docker-cli
 
 
 FROM ghcr.io/mostlygeek/llama-swap:cpu

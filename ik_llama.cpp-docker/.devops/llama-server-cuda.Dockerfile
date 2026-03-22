@@ -2,7 +2,7 @@
 
 ARG UBUNTU_VERSION=24.04
 # This needs to generally match the container host's environment.
-ARG CUDA_VERSION=13.0.2
+ARG CUDA_VERSION=13.2.0
 # Target the CUDA build image
 ARG BASE_CUDA_DEV_CONTAINER=nvidia/cuda:${CUDA_VERSION}-devel-ubuntu${UBUNTU_VERSION}
 # Target the CUDA runtime image
