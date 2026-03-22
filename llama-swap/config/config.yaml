@@ -16,7 +16,7 @@ macros:
       --init --rm
       --name model-${MODEL_ID}
       --gpus all --ipc=host --ulimit memlock=-1
-      -v /home/spirkaa/.lmstudio/models:/app/models
+      -v /mnt/data0/llm/models:/app/models
       -v /home/spirkaa/projects/llm-homelab/llama-swap/config:/app/config
       -p ${PORT}:8080
       git.devmem.ru/projects/llm-homelab/llama.cpp:server-cuda
@@ -25,7 +25,7 @@ macros:
       --init --rm
       --name model-${MODEL_ID}
       --ipc=host --ulimit memlock=-1
-      -v /home/spirkaa/.lmstudio/models:/app/models
+      -v /mnt/data0/llm/models:/app/models
       -v /home/spirkaa/projects/llm-homelab/llama-swap/config:/app/config
       -p ${PORT}:8080
       git.devmem.ru/projects/llm-homelab/llama.cpp:server-cuda
@@ -34,7 +34,7 @@ macros:
       --init --rm
       --name model-${MODEL_ID}
       --gpus all --ipc=host --ulimit memlock=-1
-      -v /home/spirkaa/.lmstudio/models:/app/models
+      -v /mnt/data0/llm/models:/app/models
       -v /home/spirkaa/projects/llm-homelab/llama-swap/config:/app/config
       -p ${PORT}:8080
       git.devmem.ru/projects/llm-homelab/ik_llama.cpp:server-cuda
@@ -244,13 +244,13 @@ models:
     cmdStop: ${macros-docker-stop}
     cmd: >
       ${macros-docker-llama}
-      --model /app/models/unsloth/Qwen3.5-27B-GGUF/Qwen3.5-27B-UD-Q4_K_XL.gguf
+      --model /app/models/bartowski/Qwen_Qwen3.5-27B-GGUF/Qwen_Qwen3.5-27B-IQ4_XS.gguf
       --metrics
       --mlock
       --fit-target 1536
       --fit-ctx 65536
       --jinja
-      --mmproj /app/models/unsloth/Qwen3.5-27B-GGUF/mmproj-F16.gguf
+      --mmproj /app/models/bartowski/Qwen_Qwen3.5-27B-GGUF/mmproj-Qwen_Qwen3.5-27B-f16.gguf
     aliases:
       - qwen3.5-27b:coding
       - qwen3.5-27b:instruct
@@ -281,17 +281,55 @@ models:
     cmdStop: ${macros-docker-stop}
     cmd: >
       ${macros-docker-llama}
-      --model /app/models/unsloth/Qwen3.5-35B-A3B-GGUF/Qwen3.5-35B-A3B-UD-Q4_K_XL.gguf
+      --model /app/models/AesSedai/Qwen3.5-35B-A3B-GGUF/Qwen3.5-35B-A3B-IQ4_XS-00001-of-00002.gguf
       --metrics
       --mlock
       --fit-target 1536
       --fit-ctx 131072
       --jinja
-      --mmproj /app/models/unsloth/Qwen3.5-35B-A3B-GGUF/mmproj-F16.gguf
+      --mmproj /app/models/AesSedai/Qwen3.5-35B-A3B-GGUF/mmproj-Qwen3.5-35B-A3B-F16.gguf
     aliases:
       - qwen3.5-35b-a3b:coding
       - qwen3.5-35b-a3b:instruct
       - qwen3.5-35b-a3b:instruct-reasoning
+    filters:
+      setParams:
+        temperature: 1.0
+        min_p: 0.0
+        top_p: 0.95
+        top_k: 20
+        presence_penalty: 1.5
+      setParamsByID:
+        "${MODEL_ID}:coding":
+          temperature: 0.6
+          presence_penalty: 0.0
+        "${MODEL_ID}:instruct":
+          temperature: 0.7
+          top_p: 0.8
+          chat_template_kwargs:
+            enable_thinking: false
+        "${MODEL_ID}:instruct-reasoning":
+          chat_template_kwargs:
+            enable_thinking: false
+
+  qwen3.5-122b-a10b:
+    # https://unsloth.ai/docs/models/qwen3.5
+    proxy: ${macros-docker-proxy}
+    cmdStop: ${macros-docker-stop}
+    cmd: >
+      ${macros-docker-llama}
+      --model /app/models/AesSedai/Qwen3.5-122B-A10B-GGUF/Qwen3.5-122B-A10B-IQ4_XS-00001-of-00003.gguf
+      --metrics
+      --mlock
+      --n-gpu-layers 99
+      --n-cpu-moe 36
+      --fit-target 1536
+      --jinja
+      --mmproj /app/models/AesSedai/Qwen3.5-122B-A10B-GGUF/mmproj-Qwen3.5-122B-A10B-F16.gguf
+    aliases:
+      - qwen3.5-122b-a10b:coding
+      - qwen3.5-122b-a10b:instruct
+      - qwen3.5-122b-a10b:instruct-reasoning
     filters:
       setParams:
         temperature: 1.0
@@ -379,6 +417,44 @@ models:
         "${MODEL_ID}:tools":
           temperature: 0.6
           top_p: 0.95
+
+  nvidia-nemotron-3-super-120b-a12b:
+    # https://unsloth.ai/docs/models/nemotron-3-super
+    proxy: ${macros-docker-proxy}
+    cmdStop: ${macros-docker-stop}
+    cmd: >
+      ${macros-docker-llama}
+      --model /app/models/AesSedai/NVIDIA-Nemotron-3-Super-120B-A12B-GGUF/NVIDIA-Nemotron-3-Super-120B-A12B-BF16-IQ4_XS-00001-of-00003.gguf
+      --metrics
+      --mlock
+      --n-gpu-layers 99
+      --n-cpu-moe 72
+      --fit-target 256
+      --jinja
+    aliases:
+      - nvidia-nemotron-3-super-120b-a12b:tools
+    filters:
+      setParams:
+        temperature: 1.0
+        top_p: 1.0
+      setParamsByID:
+        "${MODEL_ID}:tools":
+          temperature: 0.6
+          top_p: 0.95
+
+  nvidia-nemotron-cascade-2-30b-a3b:
+    proxy: ${macros-docker-proxy}
+    cmdStop: ${macros-docker-stop}
+    cmd: >
+      ${macros-docker-llama}
+      --model /app/models/mradermacher/Nemotron-Cascade-2-30B-A3B-i1-GGUF/Nemotron-Cascade-2-30B-A3B.i1-IQ4_XS.gguf
+      --metrics
+      --mlock
+      --jinja
+    filters:
+      setParams:
+        temperature: 1.0
+        top_p: 0.95
 
   devstral-small-2-24b-instruct-2512:
     # https://unsloth.ai/docs/models/tutorials/devstral-2

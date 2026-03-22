@@ -7,29 +7,54 @@ set -o nounset
 set -o pipefail
 # set -o xtrace
 
-BASE_DIR=/home/spirkaa/.lmstudio/models
+TXT_GREEN="\e[32m"
+TXT_CLEAR="\e[0m"
 
+BASE_DIR=/mnt/data0/llm/models
+
+if [ -z "${HF_TOKEN:-}" ]; then
+  echo "Error: HF_TOKEN environment variable is not set."
+  exit 1
+fi
 HEADER="Authorization: Bearer $HF_TOKEN"
 
-URL="https://huggingface.co/unsloth/Nemotron-3-Nano-30B-A3B-GGUF/resolve/main/Nemotron-3-Nano-30B-A3B-UD-Q4_K_XL.gguf?download=true"
+MODEL_URLS=(
+  "https://huggingface.co/AesSedai/NVIDIA-Nemotron-3-Super-120B-A12B-GGUF/resolve/main/IQ4_XS/NVIDIA-Nemotron-3-Super-120B-A12B-BF16-IQ4_XS-00001-of-00003.gguf?download=true"
+  "https://huggingface.co/AesSedai/NVIDIA-Nemotron-3-Super-120B-A12B-GGUF/resolve/main/IQ4_XS/NVIDIA-Nemotron-3-Super-120B-A12B-BF16-IQ4_XS-00002-of-00003.gguf?download=true"
+  "https://huggingface.co/AesSedai/NVIDIA-Nemotron-3-Super-120B-A12B-GGUF/resolve/main/IQ4_XS/NVIDIA-Nemotron-3-Super-120B-A12B-BF16-IQ4_XS-00003-of-00003.gguf?download=true"
+)
 
-# Strip the scheme+host
-_url_path="${URL#*://huggingface.co/}"
-# Grab the "org/model" part (everything before the first /resolve)
-_org_model="${_url_path%%/resolve*}"
-DIR=$BASE_DIR/$_org_model
+download_model() {
+  local URL="$1"
 
-# Take the tail of the path
-_filename="${_url_path##*/}"
-# Remove the query (everything from "?" on)
-OUT="${_filename%%\?*}"
+  # Strip the scheme+host
+  local _url_path="${URL#*://huggingface.co/}"
 
-aria2c \
-  --min-split-size=1M \
-  --max-connection-per-server=16 \
-  --split=16 \
-  --max-concurrent-downloads=1 \
-  --header="$HEADER" \
-  --dir="$DIR" \
-  --out="$OUT" \
-  "$URL"
+  # Grab the "org/model" part (everything before the first /resolve)
+  local _org_model="${_url_path%%/resolve*}"
+  local DIR="$BASE_DIR/$_org_model"
+
+  # Take the tail of the path
+  local _filename="${_url_path##*/}"
+  # Remove the query (everything from "?" on)
+  local OUT="${_filename%%\?*}"
+
+  echo -e "${TXT_GREEN}###### Starting download for: ${URL}${TXT_CLEAR}"
+
+  aria2c \
+    --min-split-size=1M \
+    --max-connection-per-server=16 \
+    --split=16 \
+    --max-concurrent-downloads=1 \
+    --max-download-limit=18M \
+    --header="$HEADER" \
+    --dir="$DIR" \
+    --out="$OUT" \
+    "$URL"
+
+  echo -e "${TXT_GREEN}###### Completed: $OUT"
+}
+
+for URL in "${MODEL_URLS[@]}"; do
+  download_model "$URL"
+done
