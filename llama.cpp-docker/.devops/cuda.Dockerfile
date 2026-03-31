@@ -15,12 +15,13 @@ ARG CUDA_DOCKER_ARCH=default
 
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
-    build-essential cmake python3 python3-pip git libcurl4-openssl-dev libgomp1 ccache
+    gcc-14 g++-14 build-essential cmake python3 python3-pip git libssl-dev libgomp1 ccache
 
 WORKDIR /app
 
 COPY . .
 
+ENV CC=gcc-14 CXX=g++-14 CUDAHOSTCXX=g++-14
 ENV CCACHE_DIR=/root/.cache/ccache
 ENV PATH=/usr/lib/ccache:$PATH
 
@@ -47,7 +48,7 @@ RUN mkdir -p /app/full \
 FROM ${BASE_CUDA_RUN_CONTAINER} AS base
 
 RUN apt-get update \
-    && apt-get install -y --no-install-recommends libgomp1 curl\
+    && apt-get install -y --no-install-recommends libgomp1 curl \
     && apt-get autoremove -y \
     && apt-get clean -y \
     && rm -rf /tmp/* /var/tmp/* \
@@ -68,7 +69,8 @@ RUN apt-get update \
     git \
     python3 \
     python3-pip \
-    && pip install --no-cache-dir --upgrade pip setuptools wheel \
+    python3-wheel \
+    && pip install --no-cache-dir --break-system-packages --upgrade setuptools \
     && pip install --no-cache-dir --break-system-packages -r requirements.txt \
     && apt-get autoremove -y \
     && apt-get clean -y \
