@@ -66,6 +66,41 @@ models:
         top_p: 0.95
         top_k: 64
 
+  gemma-4-26b-a4b:
+    # https://unsloth.ai/docs/models/gemma-4
+    proxy: ${macros-docker-proxy}
+    cmdStop: ${macros-docker-stop}
+    cmd: >
+      ${macros-docker-llama}
+      --model /app/models/unsloth/gemma-4-26B-A4B-it-GGUF/gemma-4-26B-A4B-it-UD-Q4_K_XL.gguf
+      --metrics
+      --mlock
+      --fit-target 1536
+      --mmproj /app/models/unsloth/gemma-4-26B-A4B-it-GGUF/mmproj-F16.gguf
+    filters:
+      setParams:
+        temperature: 1.0
+        top_p: 0.95
+        top_k: 64
+
+  gemma-4-31b:
+    # https://unsloth.ai/docs/models/gemma-4
+    proxy: ${macros-docker-proxy}
+    cmdStop: ${macros-docker-stop}
+    cmd: >
+      ${macros-docker-llama}
+      --model /app/models/unsloth/gemma-4-31B-it-GGUF/gemma-4-31B-it-IQ4_XS.gguf
+      --metrics
+      --mlock
+      --fit-target 2048
+      --parallel 1
+      --mmproj /app/models/unsloth/gemma-4-31B-it-GGUF/mmproj-F16.gguf
+    filters:
+      setParams:
+        temperature: 1.0
+        top_p: 0.95
+        top_k: 64
+
   gpt-oss-120b:
     # https://unsloth.ai/docs/models/gpt-oss-how-to-run-and-fine-tune
     proxy: ${macros-docker-proxy}

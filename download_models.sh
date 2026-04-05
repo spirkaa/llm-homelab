@@ -19,9 +19,10 @@ fi
 HEADER="Authorization: Bearer $HF_TOKEN"
 
 MODEL_URLS=(
-  "https://huggingface.co/AesSedai/NVIDIA-Nemotron-3-Super-120B-A12B-GGUF/resolve/main/IQ4_XS/NVIDIA-Nemotron-3-Super-120B-A12B-BF16-IQ4_XS-00001-of-00003.gguf?download=true"
-  "https://huggingface.co/AesSedai/NVIDIA-Nemotron-3-Super-120B-A12B-GGUF/resolve/main/IQ4_XS/NVIDIA-Nemotron-3-Super-120B-A12B-BF16-IQ4_XS-00002-of-00003.gguf?download=true"
-  "https://huggingface.co/AesSedai/NVIDIA-Nemotron-3-Super-120B-A12B-GGUF/resolve/main/IQ4_XS/NVIDIA-Nemotron-3-Super-120B-A12B-BF16-IQ4_XS-00003-of-00003.gguf?download=true"
+  "https://huggingface.co/unsloth/gemma-4-31B-it-GGUF/resolve/main/gemma-4-31B-it-IQ4_XS.gguf?download=true"
+  "https://huggingface.co/unsloth/gemma-4-31B-it-GGUF/resolve/main/mmproj-F16.gguf?download=true"
+  "https://huggingface.co/unsloth/gemma-4-26B-A4B-it-GGUF/resolve/main/gemma-4-26B-A4B-it-UD-Q4_K_XL.gguf?download=true"
+  "https://huggingface.co/unsloth/gemma-4-26B-A4B-it-GGUF/resolve/main/mmproj-F16.gguf?download=true"
 )
 
 download_model() {
