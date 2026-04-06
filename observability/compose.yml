@@ -113,7 +113,7 @@ services:
     restart: unless-stopped
 
   node-exporter:
-    image: docker.io/prom/node-exporter:v1.10.2
+    image: docker.io/prom/node-exporter:v1.11.0
     container_name: node-exporter
     volumes:
       - /proc:/host/proc:ro
