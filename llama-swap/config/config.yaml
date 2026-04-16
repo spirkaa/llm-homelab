@@ -80,6 +80,7 @@ models:
     filters:
       setParams:
         temperature: 1.0
+        min_p: 0.0
         top_p: 0.95
         top_k: 64
 
@@ -92,12 +93,13 @@ models:
       --model /app/models/unsloth/gemma-4-31B-it-GGUF/gemma-4-31B-it-IQ4_XS.gguf
       --metrics
       --mlock
-      --fit-target 2048
+      --fit-target 1536
       --parallel 1
       --mmproj /app/models/unsloth/gemma-4-31B-it-GGUF/mmproj-F16.gguf
     filters:
       setParams:
         temperature: 1.0
+        min_p: 0.0
         top_p: 0.95
         top_k: 64
 
@@ -155,61 +157,6 @@ models:
           chat_template_kwargs:
             reasoning_effort: high
 
-  qwen3-coder-30b-a3b-instruct:
-    # https://unsloth.ai/docs/models/qwen3-coder-how-to-run-locally
-    proxy: ${macros-docker-proxy}
-    cmdStop: ${macros-docker-stop}
-    cmd: >
-      ${macros-docker-llama}
-      --model /app/models/unsloth/Qwen3-Coder-30B-A3B-Instruct-GGUF/Qwen3-Coder-30B-A3B-Instruct-UD-Q4_K_XL.gguf
-      --metrics
-      --mlock
-      --jinja
-    filters:
-      setParams:
-        temperature: 0.7
-        min_p: 0.0
-        top_p: 0.8
-        top_k: 20
-        repetition_penalty: 1.05
-
-  qwen3-30b-a3b-instruct-2507:
-    # https://unsloth.ai/docs/models/qwen3-how-to-run-and-fine-tune/qwen3-2507
-    proxy: ${macros-docker-proxy}
-    cmdStop: ${macros-docker-stop}
-    cmd: >
-      ${macros-docker-llama}
-      --model /app/models/unsloth/Qwen3-30B-A3B-Instruct-2507-GGUF/Qwen3-30B-A3B-Instruct-2507-UD-Q4_K_XL.gguf
-      --metrics
-      --mlock
-      --jinja
-    filters:
-      setParams:
-        temperature: 0.7
-        min_p: 0.0
-        top_p: 0.8
-        top_k: 20
-
-  qwen3-vl-32b:
-    # https://unsloth.ai/docs/models/qwen3-how-to-run-and-fine-tune/qwen3-vl-how-to-run-and-fine-tune
-    proxy: ${macros-docker-proxy}
-    cmdStop: ${macros-docker-stop}
-    cmd: >
-      ${macros-docker-llama}
-      --model /app/models/unsloth/Qwen3-VL-32B-Instruct-GGUF/Qwen3-VL-32B-Instruct-UD-Q3_K_XL.gguf
-      --metrics
-      --mlock
-      --fit-target 3072
-      --jinja
-      --mmproj /app/models/unsloth/Qwen3-VL-32B-Instruct-GGUF/mmproj-F16.gguf
-    filters:
-      setParams:
-        temperature: 0.7
-        min_p: 0.0
-        top_p: 0.8
-        top_k: 20
-        presence_penalty: 1.5
-
   qwen3-next-80b-a3b-instruct:
     # https://unsloth.ai/docs/models/tutorials/qwen3-next
     proxy: ${macros-docker-proxy}
@@ -220,8 +167,8 @@ models:
       --metrics
       --mlock
       --n-gpu-layers 99
-      --n-cpu-moe 26
-      --ctx-size 65536
+      --n-cpu-moe 27
+      --fit-ctx 65536
       --jinja
     filters:
       setParams:
@@ -241,8 +188,8 @@ models:
       --metrics
       --mlock
       --n-gpu-layers 99
-      --n-cpu-moe 29
-      --ctx-size 100000
+      --n-cpu-moe 30
+      --fit-ctx 65536
       --jinja
     filters:
       setParams:
@@ -365,6 +312,43 @@ models:
       - qwen3.5-122b-a10b:coding
       - qwen3.5-122b-a10b:instruct
       - qwen3.5-122b-a10b:instruct-reasoning
+    filters:
+      setParams:
+        temperature: 1.0
+        min_p: 0.0
+        top_p: 0.95
+        top_k: 20
+        presence_penalty: 1.5
+      setParamsByID:
+        "${MODEL_ID}:coding":
+          temperature: 0.6
+          presence_penalty: 0.0
+        "${MODEL_ID}:instruct":
+          temperature: 0.7
+          top_p: 0.8
+          chat_template_kwargs:
+            enable_thinking: false
+        "${MODEL_ID}:instruct-reasoning":
+          chat_template_kwargs:
+            enable_thinking: false
+
+  qwen3.6-35b-a3b:
+    # https://unsloth.ai/docs/models/qwen3.6
+    proxy: ${macros-docker-proxy}
+    cmdStop: ${macros-docker-stop}
+    cmd: >
+      ${macros-docker-llama}
+      --model /app/models/unsloth/Qwen3.6-35B-A3B-GGUF/Qwen3.6-35B-A3B-UD-IQ4_XS.gguf
+      --metrics
+      --mlock
+      --fit-target 1536
+      --fit-ctx 131072
+      --jinja
+      --mmproj /app/models/unsloth/Qwen3.6-35B-A3B-GGUF/mmproj-F16.gguf
+    aliases:
+      - qwen3.6-35b-a3b:coding
+      - qwen3.6-35b-a3b:instruct
+      - qwen3.6-35b-a3b:instruct-reasoning
     filters:
       setParams:
         temperature: 1.0
