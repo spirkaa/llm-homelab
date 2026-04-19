@@ -76,6 +76,10 @@ models:
       --metrics
       --mlock
       --fit-target 1536
+      --fit-ctx 131072
+      --batch-size 2048
+      --ubatch-size 2048
+      --parallel 1
       --mmproj /app/models/unsloth/gemma-4-26B-A4B-it-GGUF/mmproj-F16.gguf
     filters:
       setParams:
@@ -226,13 +230,14 @@ models:
     cmdStop: ${macros-docker-stop}
     cmd: >
       ${macros-docker-llama}
-      --model /app/models/bartowski/Qwen_Qwen3.5-27B-GGUF/Qwen_Qwen3.5-27B-IQ4_XS.gguf
+      --model /app/models/unsloth/Qwen3.5-27B-GGUF/Qwen3.5-27B-UD-Q4_K_XL.gguf
       --metrics
       --mlock
       --fit-target 1536
       --fit-ctx 65536
+      --parallel 1
       --jinja
-      --mmproj /app/models/bartowski/Qwen_Qwen3.5-27B-GGUF/mmproj-Qwen_Qwen3.5-27B-f16.gguf
+      --mmproj /app/models/unsloth/Qwen3.5-27B-GGUF/mmproj-F16.gguf
     aliases:
       - qwen3.5-27b:coding
       - qwen3.5-27b:instruct
@@ -304,10 +309,10 @@ models:
       --metrics
       --mlock
       --n-gpu-layers 99
-      --n-cpu-moe 36
-      --fit-target 1536
+      --n-cpu-moe 34
+      --fit-target 256
+      --parallel 1
       --jinja
-      --mmproj /app/models/AesSedai/Qwen3.5-122B-A10B-GGUF/mmproj-Qwen3.5-122B-A10B-F16.gguf
     aliases:
       - qwen3.5-122b-a10b:coding
       - qwen3.5-122b-a10b:instruct
@@ -338,13 +343,15 @@ models:
     cmdStop: ${macros-docker-stop}
     cmd: >
       ${macros-docker-llama}
-      --model /app/models/unsloth/Qwen3.6-35B-A3B-GGUF/Qwen3.6-35B-A3B-UD-IQ4_XS.gguf
+      --model /app/models/unsloth/Qwen3.6-35B-A3B-GGUF/Qwen3.6-35B-A3B-UD-Q4_K_S.gguf
       --metrics
       --mlock
-      --fit-target 1536
-      --fit-ctx 131072
+      --fit-target 256
+      --fit-ctx 100000
+      --batch-size 2048
+      --ubatch-size 2048
+      --parallel 1
       --jinja
-      --mmproj /app/models/unsloth/Qwen3.6-35B-A3B-GGUF/mmproj-F16.gguf
     aliases:
       - qwen3.6-35b-a3b:coding
       - qwen3.6-35b-a3b:instruct
@@ -356,6 +363,8 @@ models:
         top_p: 0.95
         top_k: 20
         presence_penalty: 1.5
+        chat_template_kwargs:
+          preserve_thinking: true
       setParamsByID:
         "${MODEL_ID}:coding":
           temperature: 0.6
@@ -365,9 +374,11 @@ models:
           top_p: 0.8
           chat_template_kwargs:
             enable_thinking: false
+            preserve_thinking: false
         "${MODEL_ID}:instruct-reasoning":
           chat_template_kwargs:
             enable_thinking: false
+            preserve_thinking: false
 
   glm-4.5-air-iq4-kss:
     # https://huggingface.co/ubergarm/GLM-4.5-Air-GGUF
@@ -403,6 +414,10 @@ models:
       --model /app/models/unsloth/GLM-4.7-Flash-GGUF/GLM-4.7-Flash-UD-Q4_K_XL.gguf
       --metrics
       --mlock
+      --fit-target 256
+      --batch-size 2048
+      --ubatch-size 2048
+      --parallel 1
       --jinja
     aliases:
       - glm-4.7-flash-30b-a3b:tools
@@ -425,6 +440,8 @@ models:
       --model /app/models/unsloth/Nemotron-3-Nano-30B-A3B-GGUF/Nemotron-3-Nano-30B-A3B-UD-Q4_K_XL.gguf
       --metrics
       --mlock
+      --fit-target 256
+      --parallel 1
       --jinja
     aliases:
       - nvidia-nemotron-3-nano-30b-a3b:tools
@@ -447,8 +464,9 @@ models:
       --metrics
       --mlock
       --n-gpu-layers 99
-      --n-cpu-moe 72
+      --n-cpu-moe 68
       --fit-target 256
+      --parallel 1
       --jinja
     aliases:
       - nvidia-nemotron-3-super-120b-a12b:tools
@@ -460,33 +478,3 @@ models:
         "${MODEL_ID}:tools":
           temperature: 0.6
           top_p: 0.95
-
-  nvidia-nemotron-cascade-2-30b-a3b:
-    proxy: ${macros-docker-proxy}
-    cmdStop: ${macros-docker-stop}
-    cmd: >
-      ${macros-docker-llama}
-      --model /app/models/mradermacher/Nemotron-Cascade-2-30B-A3B-i1-GGUF/Nemotron-Cascade-2-30B-A3B.i1-IQ4_XS.gguf
-      --metrics
-      --mlock
-      --jinja
-    filters:
-      setParams:
-        temperature: 1.0
-        top_p: 0.95
-
-  devstral-small-2-24b-instruct-2512:
-    # https://unsloth.ai/docs/models/tutorials/devstral-2
-    proxy: ${macros-docker-proxy}
-    cmdStop: ${macros-docker-stop}
-    cmd: >
-      ${macros-docker-llama}
-      --model /app/models/unsloth/Devstral-Small-2-24B-Instruct-2512-GGUF/Devstral-Small-2-24B-Instruct-2512-UD-Q4_K_XL.gguf
-      --metrics
-      --mlock
-      --jinja
-      --mmproj /app/models/unsloth/Devstral-Small-2-24B-Instruct-2512-GGUF/mmproj-F16.gguf
-    filters:
-      setParams:
-        temperature: 0.15
-        min_p: 0.01

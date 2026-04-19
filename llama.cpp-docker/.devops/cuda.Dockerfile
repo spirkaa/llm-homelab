@@ -96,6 +96,7 @@ FROM base AS server
 ENV LLAMA_ARG_HOST=0.0.0.0
 
 COPY --from=build /app/full/llama-server /app
+COPY --from=build /app/full/llama-bench /app
 
 WORKDIR /app
 
