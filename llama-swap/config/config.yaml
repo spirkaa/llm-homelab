@@ -80,6 +80,12 @@ models:
       --batch-size 2048
       --ubatch-size 2048
       --parallel 1
+      --cache-type-k q8_0
+      --cache-type-v q8_0
+      --spec-type ngram-mod
+      --spec-ngram-mod-n-match 24
+      --spec-ngram-mod-n-min 12
+      --spec-ngram-mod-n-max 48
       --mmproj /app/models/unsloth/gemma-4-26B-A4B-it-GGUF/mmproj-F16.gguf
     filters:
       setParams:
@@ -99,6 +105,12 @@ models:
       --mlock
       --fit-target 1536
       --parallel 1
+      --cache-type-k q8_0
+      --cache-type-v q8_0
+      --spec-type ngram-mod
+      --spec-ngram-mod-n-match 24
+      --spec-ngram-mod-n-min 12
+      --spec-ngram-mod-n-max 48
       --mmproj /app/models/unsloth/gemma-4-31B-it-GGUF/mmproj-F16.gguf
     filters:
       setParams:
@@ -224,81 +236,6 @@ models:
         chat_template_kwargs:
           enable_thinking: false
 
-  qwen3.5-27b:
-    # https://unsloth.ai/docs/models/qwen3.5
-    proxy: ${macros-docker-proxy}
-    cmdStop: ${macros-docker-stop}
-    cmd: >
-      ${macros-docker-llama}
-      --model /app/models/unsloth/Qwen3.5-27B-GGUF/Qwen3.5-27B-UD-Q4_K_XL.gguf
-      --metrics
-      --mlock
-      --fit-target 1536
-      --fit-ctx 65536
-      --parallel 1
-      --jinja
-      --mmproj /app/models/unsloth/Qwen3.5-27B-GGUF/mmproj-F16.gguf
-    aliases:
-      - qwen3.5-27b:coding
-      - qwen3.5-27b:instruct
-      - qwen3.5-27b:instruct-reasoning
-    filters:
-      setParams:
-        temperature: 1.0
-        min_p: 0.0
-        top_p: 0.95
-        top_k: 20
-        presence_penalty: 1.5
-      setParamsByID:
-        "${MODEL_ID}:coding":
-          temperature: 0.6
-          presence_penalty: 0.0
-        "${MODEL_ID}:instruct":
-          temperature: 0.7
-          top_p: 0.8
-          chat_template_kwargs:
-            enable_thinking: false
-        "${MODEL_ID}:instruct-reasoning":
-          chat_template_kwargs:
-            enable_thinking: false
-
-  qwen3.5-35b-a3b:
-    # https://unsloth.ai/docs/models/qwen3.5
-    proxy: ${macros-docker-proxy}
-    cmdStop: ${macros-docker-stop}
-    cmd: >
-      ${macros-docker-llama}
-      --model /app/models/AesSedai/Qwen3.5-35B-A3B-GGUF/Qwen3.5-35B-A3B-IQ4_XS-00001-of-00002.gguf
-      --metrics
-      --mlock
-      --fit-target 1536
-      --fit-ctx 131072
-      --jinja
-      --mmproj /app/models/AesSedai/Qwen3.5-35B-A3B-GGUF/mmproj-Qwen3.5-35B-A3B-F16.gguf
-    aliases:
-      - qwen3.5-35b-a3b:coding
-      - qwen3.5-35b-a3b:instruct
-      - qwen3.5-35b-a3b:instruct-reasoning
-    filters:
-      setParams:
-        temperature: 1.0
-        min_p: 0.0
-        top_p: 0.95
-        top_k: 20
-        presence_penalty: 1.5
-      setParamsByID:
-        "${MODEL_ID}:coding":
-          temperature: 0.6
-          presence_penalty: 0.0
-        "${MODEL_ID}:instruct":
-          temperature: 0.7
-          top_p: 0.8
-          chat_template_kwargs:
-            enable_thinking: false
-        "${MODEL_ID}:instruct-reasoning":
-          chat_template_kwargs:
-            enable_thinking: false
-
   qwen3.5-122b-a10b:
     # https://unsloth.ai/docs/models/qwen3.5
     proxy: ${macros-docker-proxy}
@@ -337,6 +274,54 @@ models:
           chat_template_kwargs:
             enable_thinking: false
 
+  qwen3.6-27b:
+    # https://unsloth.ai/docs/models/qwen3.6
+    proxy: ${macros-docker-proxy}
+    cmdStop: ${macros-docker-stop}
+    cmd: >
+      ${macros-docker-llama}
+      --model /app/models/unsloth/Qwen3.6-27B-GGUF/Qwen3.6-27B-UD-Q4_K_XL.gguf
+      --metrics
+      --mlock
+      --fit-target 1536
+      --fit-ctx 65536
+      --parallel 1
+      --cache-type-k q8_0
+      --cache-type-v q8_0
+      --spec-type ngram-mod
+      --spec-ngram-mod-n-match 24
+      --spec-ngram-mod-n-min 12
+      --spec-ngram-mod-n-max 48
+      --jinja
+      --mmproj /app/models/unsloth/Qwen3.6-27B-GGUF/mmproj-F16.gguf
+    aliases:
+      - qwen3.6-27b:coding
+      - qwen3.6-27b:instruct
+      - qwen3.6-27b:instruct-reasoning
+    filters:
+      setParams:
+        temperature: 1.0
+        min_p: 0.0
+        top_p: 0.95
+        top_k: 20
+        presence_penalty: 1.5
+        chat_template_kwargs:
+          preserve_thinking: true
+      setParamsByID:
+        "${MODEL_ID}:coding":
+          temperature: 0.6
+          presence_penalty: 0.0
+        "${MODEL_ID}:instruct":
+          temperature: 0.7
+          top_p: 0.8
+          chat_template_kwargs:
+            enable_thinking: false
+            preserve_thinking: false
+        "${MODEL_ID}:instruct-reasoning":
+          chat_template_kwargs:
+            enable_thinking: false
+            preserve_thinking: false
+
   qwen3.6-35b-a3b:
     # https://unsloth.ai/docs/models/qwen3.6
     proxy: ${macros-docker-proxy}
@@ -351,6 +336,12 @@ models:
       --batch-size 2048
       --ubatch-size 2048
       --parallel 1
+      --cache-type-k q8_0
+      --cache-type-v q8_0
+      --spec-type ngram-mod
+      --spec-ngram-mod-n-match 24
+      --spec-ngram-mod-n-min 12
+      --spec-ngram-mod-n-max 48
       --jinja
     aliases:
       - qwen3.6-35b-a3b:coding
