@@ -7,9 +7,12 @@ from operator import itemgetter
 from urllib.parse import urljoin
 
 import requests
+from dotenv import load_dotenv
 from prometheus_client import CONTENT_TYPE_LATEST, REGISTRY, generate_latest
 from prometheus_client.core import CounterMetricFamily, GaugeMetricFamily
 from prometheus_client.registry import Collector
+
+load_dotenv()
 
 LLAMA_SWAP_BASE_URL = os.getenv("LLAMA_SWAP_BASE_URL", "http://localhost:8080")
 REFRESH_INTERVAL = int(os.getenv("REFRESH_INTERVAL", "15"))
@@ -99,15 +102,17 @@ class LlamaSwapCollector(Collector):
         for entry in data:
             common_label = [entry["model"]]
 
-            cache_metric.add_metric(common_label, float(entry["cache_tokens"]))
-            input_metric.add_metric(common_label, float(entry["input_tokens"]))
-            output_metric.add_metric(common_label, float(entry["output_tokens"]))
+            tokens = entry["tokens"]
+            cache_metric.add_metric(common_label, float(tokens["cache_tokens"]))
+            input_metric.add_metric(common_label, float(tokens["input_tokens"]))
+            output_metric.add_metric(common_label, float(tokens["output_tokens"]))
             prompt_pps_metric.add_metric(
-                common_label, float(entry["prompt_per_second"])
+                common_label, float(tokens["prompt_per_second"])
             )
             tokens_pps_metric.add_metric(
-                common_label, float(entry["tokens_per_second"])
+                common_label, float(tokens["tokens_per_second"])
             )
+
             duration_metric.add_metric(common_label, float(entry["duration_ms"]))
 
         return [

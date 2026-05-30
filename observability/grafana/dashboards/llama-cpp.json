@@ -2305,12 +2305,12 @@
           "type": "prometheus",
           "uid": "${datasource}"
         },
-        "definition": "label_values(llamacpp_n_busy_slots_per_decode_total,job)",
+        "definition": "label_values(llamacpp_tokens_predicted_total,job)",
         "name": "job",
         "options": [],
         "query": {
           "qryType": 1,
-          "query": "label_values(llamacpp_n_busy_slots_per_decode_total,job)",
+          "query": "label_values(llamacpp_tokens_predicted_total,job)",
           "refId": "PrometheusVariableQueryEditor-VariableQuery"
         },
         "refresh": 2,
@@ -2329,14 +2329,14 @@
           "type": "prometheus",
           "uid": "${datasource}"
         },
-        "definition": "label_values(llamacpp_n_busy_slots_per_decode_total{job=~\"$job\"},model)",
+        "definition": "label_values(llamacpp_tokens_predicted_total{job=~\"$job\"},model)",
         "includeAll": true,
         "multi": true,
         "name": "model",
         "options": [],
         "query": {
           "qryType": 1,
-          "query": "label_values(llamacpp_n_busy_slots_per_decode_total{job=~\"$job\"},model)",
+          "query": "label_values(llamacpp_tokens_predicted_total{job=~\"$job\"},model)",
           "refId": "PrometheusVariableQueryEditor-VariableQuery"
         },
         "refresh": 2,
@@ -2354,5 +2354,5 @@
   "timezone": "browser",
   "title": "llama.cpp",
   "uid": "fdtzxgskowsg0f",
-  "version": 13
+  "version": 14
 }
