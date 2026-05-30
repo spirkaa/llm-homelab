@@ -22,7 +22,7 @@ services:
     restart: unless-stopped
 
   vmsingle:
-    image: docker.io/victoriametrics/victoria-metrics:v1.139.0
+    image: docker.io/victoriametrics/victoria-metrics:v1.144.0
     container_name: vmsingle
     volumes:
       - ./vmsingle/data:/vmsingle
