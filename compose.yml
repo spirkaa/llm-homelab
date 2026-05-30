@@ -141,7 +141,7 @@ services:
     restart: unless-stopped
 
   traefik-home:
-    image: ghcr.io/santimar/traefik-home:v1.5.0
+    image: ghcr.io/santimar/traefik-home:v1.6.0
     container_name: traefik-home
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
