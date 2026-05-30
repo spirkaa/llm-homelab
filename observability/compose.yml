@@ -1,6 +1,6 @@
 services:
   grafana:
-    image: docker.io/grafana/grafana:12.4.2
+    image: docker.io/grafana/grafana:12.4.3
     container_name: grafana
     volumes:
       - ./grafana/data:/var/lib/grafana
