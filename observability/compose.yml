@@ -78,7 +78,7 @@ services:
     restart: unless-stopped
 
   vector:
-    image: docker.io/timberio/vector:0.55.0-distroless-libc
+    image: docker.io/timberio/vector:0.56.0-distroless-libc
     container_name: vector
     user: root
     volumes:
