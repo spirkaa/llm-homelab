@@ -197,7 +197,7 @@ class MetricsHandler(BaseHTTPRequestHandler):
                 self.send_header("Content-Length", str(len(output)))
                 self.end_headers()
                 self.wfile.write(output)
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 self.send_error(500, f"Failed to generate metrics: {e}")
         else:
             self.send_response(200)
