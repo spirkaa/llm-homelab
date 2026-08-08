@@ -56,7 +56,8 @@ models:
       ${macros-docker-llama}
       --model /app/models/google/gemma-3-27b-it-qat-q4_0-gguf/gemma-3-27b-it-q4_0.gguf
       --metrics
-      --mlock
+      --verbosity 4
+      --load-mode mlock
       --fit-target 2048
       --mmproj /app/models/google/gemma-3-27b-it-qat-q4_0-gguf/mmproj-model-f16-27B.gguf
     filters:
@@ -72,27 +73,31 @@ models:
     cmdStop: ${macros-docker-stop}
     cmd: >
       ${macros-docker-llama}
-      --model /app/models/unsloth/gemma-4-26B-A4B-it-GGUF/gemma-4-26B-A4B-it-UD-Q4_K_XL.gguf
+      --model /app/models/unsloth/gemma-4-26B-A4B-it-qat-GGUF/gemma-4-26B-A4B-it-qat-UD-Q4_K_XL.gguf
+      --model-draft /app/models/unsloth/gemma-4-26B-A4B-it-qat-GGUF/mtp-gemma-4-26B-A4B-it-Q4_0.gguf
+      --mmproj /app/models/unsloth/gemma-4-26B-A4B-it-qat-GGUF/mmproj-F16.gguf
       --metrics
-      --mlock
+      --verbosity 4
+      --load-mode mlock
       --fit-target 1536
-      --fit-ctx 131072
       --batch-size 2048
       --ubatch-size 2048
       --parallel 1
       --cache-type-k q8_0
       --cache-type-v q8_0
-      --spec-type ngram-mod
-      --spec-ngram-mod-n-match 24
-      --spec-ngram-mod-n-min 12
-      --spec-ngram-mod-n-max 48
-      --mmproj /app/models/unsloth/gemma-4-26B-A4B-it-GGUF/mmproj-F16.gguf
+      --spec-default
+      --spec-type draft-mtp
+      --spec-draft-n-max 2
     filters:
       setParams:
         temperature: 1.0
         min_p: 0.0
         top_p: 0.95
         top_k: 64
+      setParamsByID:
+        "${MODEL_ID}:instruct":
+          chat_template_kwargs:
+            enable_thinking: false
 
   gemma-4-31b:
     # https://unsloth.ai/docs/models/gemma-4
@@ -100,24 +105,29 @@ models:
     cmdStop: ${macros-docker-stop}
     cmd: >
       ${macros-docker-llama}
-      --model /app/models/unsloth/gemma-4-31B-it-GGUF/gemma-4-31B-it-IQ4_XS.gguf
+      --model /app/models/unsloth/gemma-4-31B-it-qat-GGUF/gemma-4-31B-it-qat-UD-Q4_K_XL.gguf
+      --model-draft /app/models/unsloth/gemma-4-31B-it-qat-GGUF/mtp-gemma-4-31B-it-Q4_0.gguf
+      --mmproj /app/models/unsloth/gemma-4-31B-it-qat-GGUF/mmproj-F16.gguf
       --metrics
-      --mlock
+      --verbosity 4
+      --load-mode mlock
       --fit-target 1536
       --parallel 1
       --cache-type-k q8_0
       --cache-type-v q8_0
-      --spec-type ngram-mod
-      --spec-ngram-mod-n-match 24
-      --spec-ngram-mod-n-min 12
-      --spec-ngram-mod-n-max 48
-      --mmproj /app/models/unsloth/gemma-4-31B-it-GGUF/mmproj-F16.gguf
+      --spec-default
+      --spec-type draft-mtp
+      --spec-draft-n-max 2
     filters:
       setParams:
         temperature: 1.0
         min_p: 0.0
         top_p: 0.95
         top_k: 64
+      setParamsByID:
+        "${MODEL_ID}:instruct":
+          chat_template_kwargs:
+            enable_thinking: false
 
   gpt-oss-120b:
     # https://unsloth.ai/docs/models/gpt-oss-how-to-run-and-fine-tune
@@ -127,13 +137,12 @@ models:
       ${macros-docker-llama}
       --model /app/models/unsloth/gpt-oss-120b-GGUF/gpt-oss-120b-UD-Q4_K_XL-00001-of-00002.gguf
       --metrics
-      --mlock
+      --verbosity 4
+      --load-mode mlock
       --n-gpu-layers 99
       --n-cpu-moe 26
       --jinja
       --grammar-file /app/config/gpt-oss-vscode.gbnf
-    aliases:
-      - gpt-oss-120b:high
     filters:
       setParams:
         temperature: 1.0
@@ -155,11 +164,10 @@ models:
       ${macros-docker-llama}
       --model /app/models/unsloth/gpt-oss-20b-GGUF/gpt-oss-20b-F16.gguf
       --metrics
-      --mlock
+      --verbosity 4
+      --load-mode mlock
       --jinja
       --grammar-file /app/config/gpt-oss-vscode.gbnf
-    aliases:
-      - gpt-oss-20b:high
     filters:
       setParams:
         temperature: 1.0
@@ -181,7 +189,8 @@ models:
       ${macros-docker-llama}
       --model /app/models/unsloth/Qwen3-Next-80B-A3B-Instruct-GGUF/Qwen3-Next-80B-A3B-Instruct-UD-Q4_K_XL.gguf
       --metrics
-      --mlock
+      --verbosity 4
+      --load-mode mlock
       --n-gpu-layers 99
       --n-cpu-moe 27
       --fit-ctx 65536
@@ -202,7 +211,8 @@ models:
       ${macros-docker-llama}
       --model /app/models/unsloth/Qwen3-Coder-Next-GGUF/Qwen3-Coder-Next-UD-Q4_K_XL.gguf
       --metrics
-      --mlock
+      --verbosity 4
+      --load-mode mlock
       --n-gpu-layers 99
       --n-cpu-moe 30
       --fit-ctx 65536
@@ -222,7 +232,8 @@ models:
       ${macros-docker-llama-no-gpu}
       --model /app/models/unsloth/Qwen3.5-0.8B-GGUF/Qwen3.5-0.8B-Q8_0.gguf
       --metrics
-      --mlock
+      --verbosity 4
+      --load-mode mlock
       --ctx-size 32768
       --threads 8
       --jinja
@@ -244,16 +255,13 @@ models:
       ${macros-docker-llama}
       --model /app/models/AesSedai/Qwen3.5-122B-A10B-GGUF/Qwen3.5-122B-A10B-IQ4_XS-00001-of-00003.gguf
       --metrics
-      --mlock
+      --verbosity 4
+      --load-mode mlock
       --n-gpu-layers 99
       --n-cpu-moe 34
       --fit-target 256
       --parallel 1
       --jinja
-    aliases:
-      - qwen3.5-122b-a10b:coding
-      - qwen3.5-122b-a10b:instruct
-      - qwen3.5-122b-a10b:instruct-reasoning
     filters:
       setParams:
         temperature: 1.0
@@ -280,24 +288,23 @@ models:
     cmdStop: ${macros-docker-stop}
     cmd: >
       ${macros-docker-llama}
-      --model /app/models/unsloth/Qwen3.6-27B-GGUF/Qwen3.6-27B-UD-Q4_K_XL.gguf
+      --model /app/models/unsloth/Qwen3.6-27B-MTP-GGUF/Qwen3.6-27B-Q4_K_M.gguf
       --metrics
-      --mlock
-      --fit-target 1536
-      --fit-ctx 65536
+      --verbosity 4
+      --load-mode mlock
+      --fit-target 1024
+      --ctx-size 120000
       --parallel 1
       --cache-type-k q8_0
       --cache-type-v q8_0
-      --spec-type ngram-mod
-      --spec-ngram-mod-n-match 24
-      --spec-ngram-mod-n-min 12
-      --spec-ngram-mod-n-max 48
+      --spec-default
+      --spec-type draft-mtp
+      --spec-draft-n-max 1
+      --spec-draft-p-min 0.75
       --jinja
-      --mmproj /app/models/unsloth/Qwen3.6-27B-GGUF/mmproj-F16.gguf
-    aliases:
-      - qwen3.6-27b:coding
-      - qwen3.6-27b:instruct
-      - qwen3.6-27b:instruct-reasoning
+      --mmproj /app/models/unsloth/Qwen3.6-27B-MTP-GGUF/mmproj-F16.gguf
+      --image-min-tokens 1024
+      --image-max-tokens 1024
     filters:
       setParams:
         temperature: 1.0
@@ -322,6 +329,41 @@ models:
             enable_thinking: false
             preserve_thinking: false
 
+  qwen3.6-27b-ik:
+    # https://unsloth.ai/docs/models/qwen3.6
+    proxy: ${macros-docker-proxy}
+    cmdStop: ${macros-docker-stop}
+    cmd: >
+      ${macros-docker-ik-llama}
+      --model /app/models/ubergarm/Qwen3.6-27B-GGUF/Qwen3.6-27B-MTP-IQ4_KS.gguf
+      --metrics
+      -ngl 99
+      --ctx-size 130000
+      -b 4096
+      -ub 1024
+      -np 1
+      -ctk q8_0
+      -ctv q8_0
+      -khad
+      -vhad
+      -ngld 99
+      --spec-type ngram-mod:n_max=4,n_min=2,ngram_size_n=16
+      --spec-type mtp:n_max=2,p_min=0.0
+      --recurrent-ckpt-mode auto
+      --merge-qkv
+      -fa on
+      --jinja
+      --parallel-tool-calls
+    filters:
+      setParams:
+        temperature: 0.6
+        min_p: 0.0
+        top_p: 0.95
+        top_k: 20
+        presence_penalty: 0.0
+        chat_template_kwargs:
+          preserve_thinking: true
+
   qwen3.6-35b-a3b:
     # https://unsloth.ai/docs/models/qwen3.6
     proxy: ${macros-docker-proxy}
@@ -330,7 +372,8 @@ models:
       ${macros-docker-llama}
       --model /app/models/unsloth/Qwen3.6-35B-A3B-GGUF/Qwen3.6-35B-A3B-UD-Q4_K_S.gguf
       --metrics
-      --mlock
+      --verbosity 4
+      --load-mode mlock
       --fit-target 256
       --fit-ctx 100000
       --batch-size 2048
@@ -338,15 +381,8 @@ models:
       --parallel 1
       --cache-type-k q8_0
       --cache-type-v q8_0
-      --spec-type ngram-mod
-      --spec-ngram-mod-n-match 24
-      --spec-ngram-mod-n-min 12
-      --spec-ngram-mod-n-max 48
+      --spec-default
       --jinja
-    aliases:
-      - qwen3.6-35b-a3b:coding
-      - qwen3.6-35b-a3b:instruct
-      - qwen3.6-35b-a3b:instruct-reasoning
     filters:
       setParams:
         temperature: 1.0
@@ -404,14 +440,13 @@ models:
       ${macros-docker-llama}
       --model /app/models/unsloth/GLM-4.7-Flash-GGUF/GLM-4.7-Flash-UD-Q4_K_XL.gguf
       --metrics
-      --mlock
+      --verbosity 4
+      --load-mode mlock
       --fit-target 256
       --batch-size 2048
       --ubatch-size 2048
       --parallel 1
       --jinja
-    aliases:
-      - glm-4.7-flash-30b-a3b:tools
     filters:
       setParams:
         temperature: 1.0
@@ -430,12 +465,11 @@ models:
       ${macros-docker-llama}
       --model /app/models/unsloth/Nemotron-3-Nano-30B-A3B-GGUF/Nemotron-3-Nano-30B-A3B-UD-Q4_K_XL.gguf
       --metrics
-      --mlock
+      --verbosity 4
+      --load-mode mlock
       --fit-target 256
       --parallel 1
       --jinja
-    aliases:
-      - nvidia-nemotron-3-nano-30b-a3b:tools
     filters:
       setParams:
         temperature: 1.0
@@ -453,14 +487,13 @@ models:
       ${macros-docker-llama}
       --model /app/models/AesSedai/NVIDIA-Nemotron-3-Super-120B-A12B-GGUF/NVIDIA-Nemotron-3-Super-120B-A12B-BF16-IQ4_XS-00001-of-00003.gguf
       --metrics
-      --mlock
+      --verbosity 4
+      --load-mode mlock
       --n-gpu-layers 99
       --n-cpu-moe 68
       --fit-target 256
       --parallel 1
       --jinja
-    aliases:
-      - nvidia-nemotron-3-super-120b-a12b:tools
     filters:
       setParams:
         temperature: 1.0

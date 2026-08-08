@@ -9,6 +9,26 @@
 
 ## Команды
 
+### Ограничение мощности GPU
+
+`nano /etc/systemd/system/nvidia-powerlimit.service`
+
+```ini
+[Unit]
+Description=Set NVIDIA Power Limit
+After=multi-user.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/nvidia-smi --power-limit=280
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target
+```
+
+`sudo systemctl enable --now nvidia-powerlimit`
+
 ### Загрузка-обновление-сборка образов и запуск всех контейнеров
 
 1. Запустить

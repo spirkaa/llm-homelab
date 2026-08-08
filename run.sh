@@ -12,7 +12,7 @@ TXT_GREEN="\e[32m"
 TXT_CLEAR="\e[0m"
 
 UBUNTU_VERSION=24.04
-CUDA_VERSION=13.2.0
+CUDA_VERSION=13.3.0
 CUDA_DOCKER_ARCH=86
 
 git pull --rebase
@@ -20,7 +20,7 @@ git pull --rebase
 echo -e "${TXT_GREEN}###### Building llama.cpp ######${TXT_CLEAR}"
 mkdir -p llama.cpp
 cd llama.cpp || exit
-git clone https://github.com/ggml-org/llama.cpp.git . || git pull
+git clone https://github.com/ggml-org/llama.cpp.git . || git pull --rebase
 cp ../llama.cpp-docker/.devops/cuda.Dockerfile .devops/cuda.Dockerfile
 docker build \
   -t git.devmem.ru/projects/llm-homelab/llama.cpp:server-cuda \
@@ -38,7 +38,7 @@ echo ""
 echo -e "${TXT_GREEN}###### Building ik_llama.cpp ######${TXT_CLEAR}"
 mkdir -p ik_llama.cpp
 cd ik_llama.cpp || exit
-git clone https://github.com/ikawrakow/ik_llama.cpp.git . || git pull
+git clone https://github.com/ikawrakow/ik_llama.cpp.git . || git pull --rebase
 cp ../ik_llama.cpp-docker/.devops/llama-server-cuda.Dockerfile .devops/llama-server-cuda.Dockerfile
 docker build \
   -t git.devmem.ru/projects/llm-homelab/ik_llama.cpp:server-cuda \
