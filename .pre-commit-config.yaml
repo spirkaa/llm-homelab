@@ -15,7 +15,7 @@ repos:
       - id: check-yaml
         args: [--unsafe]
   - repo: https://github.com/igorshubovych/markdownlint-cli
-    rev: v0.48.0
+    rev: v0.49.1
     hooks:
       - id: markdownlint
         args: [--fix, --disable, MD013, MD033, --]
@@ -30,7 +30,7 @@ repos:
       - id: pretty-format-yaml
         args: [--autofix, --preserve-quotes, --offset, '2']
   - repo: https://github.com/hadolint/hadolint
-    rev: v2.14.0
+    rev: v2.15.1
     hooks:
       - id: hadolint
   - repo: https://github.com/jumanjihouse/pre-commit-hooks
@@ -40,7 +40,7 @@ repos:
       - id: shfmt
         args: ["-i 2", "-ci"]
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.15.16
+    rev: v0.16.2
     hooks:
       - id: ruff-check
         args: [--fix]
