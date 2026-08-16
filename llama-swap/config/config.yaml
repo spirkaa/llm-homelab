@@ -75,7 +75,7 @@ models:
       ${macros-docker-llama}
       --model /app/models/unsloth/gemma-4-26B-A4B-it-qat-GGUF/gemma-4-26B-A4B-it-qat-UD-Q4_K_XL.gguf
       --model-draft /app/models/unsloth/gemma-4-26B-A4B-it-qat-GGUF/mtp-gemma-4-26B-A4B-it-Q4_0.gguf
-      --mmproj /app/models/unsloth/gemma-4-26B-A4B-it-qat-GGUF/mmproj-F16.gguf
+      --mmproj /app/models/unsloth/gemma-4-26B-A4B-it-qat-GGUF/mmproj-Q8_0.gguf
       --metrics
       --verbosity 4
       --load-mode mlock
@@ -107,11 +107,12 @@ models:
       ${macros-docker-llama}
       --model /app/models/unsloth/gemma-4-31B-it-qat-GGUF/gemma-4-31B-it-qat-UD-Q4_K_XL.gguf
       --model-draft /app/models/unsloth/gemma-4-31B-it-qat-GGUF/mtp-gemma-4-31B-it-Q4_0.gguf
-      --mmproj /app/models/unsloth/gemma-4-31B-it-qat-GGUF/mmproj-F16.gguf
+      --mmproj /app/models/unsloth/gemma-4-31B-it-qat-GGUF/mmproj-Q8_0.gguf
       --metrics
       --verbosity 4
       --load-mode mlock
       --fit-target 1536
+      --ctx-size 80000
       --parallel 1
       --cache-type-k q8_0
       --cache-type-v q8_0
@@ -289,6 +290,7 @@ models:
     cmd: >
       ${macros-docker-llama}
       --model /app/models/unsloth/Qwen3.6-27B-MTP-GGUF/Qwen3.6-27B-Q4_K_M.gguf
+      --mmproj /app/models/unsloth/Qwen3.6-27B-MTP-GGUF/mmproj-F16.gguf
       --metrics
       --verbosity 4
       --load-mode mlock
@@ -302,7 +304,6 @@ models:
       --spec-draft-n-max 1
       --spec-draft-p-min 0.75
       --jinja
-      --mmproj /app/models/unsloth/Qwen3.6-27B-MTP-GGUF/mmproj-F16.gguf
       --image-min-tokens 1024
       --image-max-tokens 1024
     filters:
@@ -370,18 +371,22 @@ models:
     cmdStop: ${macros-docker-stop}
     cmd: >
       ${macros-docker-llama}
-      --model /app/models/unsloth/Qwen3.6-35B-A3B-GGUF/Qwen3.6-35B-A3B-UD-Q4_K_S.gguf
+      --model /app/models/unsloth/Qwen3.6-35B-A3B-MTP-GGUF/Qwen3.6-35B-A3B-UD-IQ4_NL.gguf
+      --mmproj /app/models/unsloth/Qwen3.6-35B-A3B-MTP-GGUF/mmproj-Q8_0.gguf
       --metrics
       --verbosity 4
       --load-mode mlock
-      --fit-target 256
-      --fit-ctx 100000
+      --fit-target 1024
+      --ctx-size 200000
       --batch-size 2048
       --ubatch-size 2048
       --parallel 1
       --cache-type-k q8_0
       --cache-type-v q8_0
       --spec-default
+      --spec-type draft-mtp
+      --spec-draft-n-max 1
+      --spec-draft-p-min 0.75
       --jinja
     filters:
       setParams:
@@ -403,6 +408,110 @@ models:
             enable_thinking: false
             preserve_thinking: false
         "${MODEL_ID}:instruct-reasoning":
+          chat_template_kwargs:
+            enable_thinking: false
+            preserve_thinking: false
+
+  qwen3.8-27b:
+    # https://unsloth.ai/docs/models/qwen3.8
+    proxy: ${macros-docker-proxy}
+    cmdStop: ${macros-docker-stop}
+    cmd: >
+      ${macros-docker-llama}
+      --model /app/models/unsloth/Qwen3.8-27B-GGUF/Qwen3.8-27B-Q4_K_M.gguf
+      --mmproj /app/models/unsloth/Qwen3.8-27B-GGUF/mmproj-Q8_0.gguf
+      --metrics
+      --verbosity 4
+      --load-mode mlock
+      --fit-target 512
+      --ctx-size 130000
+      --parallel 1
+      --cache-type-k q8_0
+      --cache-type-v q8_0
+      --spec-default
+      --spec-type draft-mtp
+      --spec-draft-n-max 2
+      --spec-draft-p-min 0.75
+      --jinja
+      --image-min-tokens 1024
+      --image-max-tokens 1024
+    filters:
+      setParams:
+        temperature: 1.0
+        min_p: 0.0
+        top_p: 0.95
+        top_k: 20
+        thinking_budget_tokens: 4096
+        reasoning_budget_message: "... thinking budget exceeded, let's answer now."
+        chat_template_kwargs:
+          preserve_thinking: true
+          reasoning_effort: medium
+      setParamsByID:
+        "${MODEL_ID}:xhigh":
+          thinking_budget_tokens: 16384
+          chat_template_kwargs:
+            reasoning_effort: xhigh
+        "${MODEL_ID}:low":
+          thinking_budget_tokens: 1024
+          chat_template_kwargs:
+            reasoning_effort: low
+        "${MODEL_ID}:instruct":
+          temperature: 0.7
+          top_p: 0.8
+          presence_penalty: 1.5
+          chat_template_kwargs:
+            enable_thinking: false
+            preserve_thinking: false
+
+  qwen3.8-27b-ik:
+    # https://unsloth.ai/docs/models/qwen3.8
+    proxy: ${macros-docker-proxy}
+    cmdStop: ${macros-docker-stop}
+    cmd: >
+      ${macros-docker-ik-llama}
+      --model /app/models/ubergarm/Qwen3.8-27B-GGUF/Qwen3.8-27B-MTP-IQ4_KS.gguf
+      --metrics
+      -ngl 99
+      --ctx-size 130000
+      -b 4096
+      -ub 1024
+      -np 1
+      -ctk q8_0
+      -ctv q8_0
+      -khad
+      -vhad
+      -ngld 99
+      --spec-type ngram-mod:n_max=4,n_min=2,ngram_size_n=16
+      --spec-type mtp:n_max=2,p_min=0.0
+      --recurrent-ckpt-mode auto
+      --merge-qkv
+      -fa on
+      --jinja
+      --parallel-tool-calls
+    filters:
+      setParams:
+        temperature: 1.0
+        min_p: 0.0
+        top_p: 0.95
+        top_k: 20
+        thinking_budget_tokens: 4096
+        reasoning_budget_message: "... thinking budget exceeded, let's answer now."
+        chat_template_kwargs:
+          preserve_thinking: true
+          reasoning_effort: medium
+      setParamsByID:
+        "${MODEL_ID}:xhigh":
+          thinking_budget_tokens: 16384
+          chat_template_kwargs:
+            reasoning_effort: xhigh
+        "${MODEL_ID}:low":
+          thinking_budget_tokens: 1024
+          chat_template_kwargs:
+            reasoning_effort: low
+        "${MODEL_ID}:instruct":
+          temperature: 0.7
+          top_p: 0.8
+          presence_penalty: 1.5
           chat_template_kwargs:
             enable_thinking: false
             preserve_thinking: false
@@ -468,6 +577,8 @@ models:
       --verbosity 4
       --load-mode mlock
       --fit-target 256
+      --batch-size 2048
+      --ubatch-size 2048
       --parallel 1
       --jinja
     filters:

@@ -11,6 +11,13 @@ services:
       - ./llama-swap/config:/app/config
     extra_hosts:
       - host.docker.internal:host-gateway
+    runtime: nvidia
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - capabilities:
+                - gpu
     labels:
       - traefik.enable=true
       - traefik.http.routers.llama-swap.rule=Host(`llama-swap.ai.devmem.ru`)
