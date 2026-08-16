@@ -18,7 +18,7 @@ macros:
       --gpus all --ipc=host --ulimit memlock=-1
       -v /mnt/data0/llm/models:/app/models
       -v /home/spirkaa/projects/llm-homelab/llama-swap/config:/app/config
-      -p ${PORT}:8080
+      -p ${PORT}:9931
       git.devmem.ru/projects/llm-homelab/llama.cpp:server-cuda
   macros-docker-llama-no-gpu: >
     docker run
@@ -27,7 +27,7 @@ macros:
       --ipc=host --ulimit memlock=-1
       -v /mnt/data0/llm/models:/app/models
       -v /home/spirkaa/projects/llm-homelab/llama-swap/config:/app/config
-      -p ${PORT}:8080
+      -p ${PORT}:9931
       git.devmem.ru/projects/llm-homelab/llama.cpp:server-cuda
   macros-docker-ik-llama: >
     docker run
@@ -55,6 +55,8 @@ models:
     cmd: >
       ${macros-docker-llama}
       --model /app/models/google/gemma-3-27b-it-qat-q4_0-gguf/gemma-3-27b-it-q4_0.gguf
+      --port 9931
+      --cors-origins localhost
       --metrics
       --verbosity 4
       --load-mode mlock
@@ -76,6 +78,8 @@ models:
       --model /app/models/unsloth/gemma-4-26B-A4B-it-qat-GGUF/gemma-4-26B-A4B-it-qat-UD-Q4_K_XL.gguf
       --model-draft /app/models/unsloth/gemma-4-26B-A4B-it-qat-GGUF/mtp-gemma-4-26B-A4B-it-Q4_0.gguf
       --mmproj /app/models/unsloth/gemma-4-26B-A4B-it-qat-GGUF/mmproj-Q8_0.gguf
+      --port 9931
+      --cors-origins localhost
       --metrics
       --verbosity 4
       --load-mode mlock
@@ -108,6 +112,8 @@ models:
       --model /app/models/unsloth/gemma-4-31B-it-qat-GGUF/gemma-4-31B-it-qat-UD-Q4_K_XL.gguf
       --model-draft /app/models/unsloth/gemma-4-31B-it-qat-GGUF/mtp-gemma-4-31B-it-Q4_0.gguf
       --mmproj /app/models/unsloth/gemma-4-31B-it-qat-GGUF/mmproj-Q8_0.gguf
+      --port 9931
+      --cors-origins localhost
       --metrics
       --verbosity 4
       --load-mode mlock
@@ -137,6 +143,8 @@ models:
     cmd: >
       ${macros-docker-llama}
       --model /app/models/unsloth/gpt-oss-120b-GGUF/gpt-oss-120b-UD-Q4_K_XL-00001-of-00002.gguf
+      --port 9931
+      --cors-origins localhost
       --metrics
       --verbosity 4
       --load-mode mlock
@@ -164,6 +172,8 @@ models:
     cmd: >
       ${macros-docker-llama}
       --model /app/models/unsloth/gpt-oss-20b-GGUF/gpt-oss-20b-F16.gguf
+      --port 9931
+      --cors-origins localhost
       --metrics
       --verbosity 4
       --load-mode mlock
@@ -189,6 +199,8 @@ models:
     cmd: >
       ${macros-docker-llama}
       --model /app/models/unsloth/Qwen3-Next-80B-A3B-Instruct-GGUF/Qwen3-Next-80B-A3B-Instruct-UD-Q4_K_XL.gguf
+      --port 9931
+      --cors-origins localhost
       --metrics
       --verbosity 4
       --load-mode mlock
@@ -211,6 +223,8 @@ models:
     cmd: >
       ${macros-docker-llama}
       --model /app/models/unsloth/Qwen3-Coder-Next-GGUF/Qwen3-Coder-Next-UD-Q4_K_XL.gguf
+      --port 9931
+      --cors-origins localhost
       --metrics
       --verbosity 4
       --load-mode mlock
@@ -232,6 +246,8 @@ models:
     cmd: >
       ${macros-docker-llama-no-gpu}
       --model /app/models/unsloth/Qwen3.5-0.8B-GGUF/Qwen3.5-0.8B-Q8_0.gguf
+      --port 9931
+      --cors-origins localhost
       --metrics
       --verbosity 4
       --load-mode mlock
@@ -255,6 +271,8 @@ models:
     cmd: >
       ${macros-docker-llama}
       --model /app/models/AesSedai/Qwen3.5-122B-A10B-GGUF/Qwen3.5-122B-A10B-IQ4_XS-00001-of-00003.gguf
+      --port 9931
+      --cors-origins localhost
       --metrics
       --verbosity 4
       --load-mode mlock
@@ -291,6 +309,8 @@ models:
       ${macros-docker-llama}
       --model /app/models/unsloth/Qwen3.6-27B-MTP-GGUF/Qwen3.6-27B-Q4_K_M.gguf
       --mmproj /app/models/unsloth/Qwen3.6-27B-MTP-GGUF/mmproj-F16.gguf
+      --port 9931
+      --cors-origins localhost
       --metrics
       --verbosity 4
       --load-mode mlock
@@ -373,6 +393,8 @@ models:
       ${macros-docker-llama}
       --model /app/models/unsloth/Qwen3.6-35B-A3B-MTP-GGUF/Qwen3.6-35B-A3B-UD-IQ4_NL.gguf
       --mmproj /app/models/unsloth/Qwen3.6-35B-A3B-MTP-GGUF/mmproj-Q8_0.gguf
+      --port 9931
+      --cors-origins localhost
       --metrics
       --verbosity 4
       --load-mode mlock
@@ -420,6 +442,8 @@ models:
       ${macros-docker-llama}
       --model /app/models/unsloth/Qwen3.8-27B-GGUF/Qwen3.8-27B-Q4_K_M.gguf
       --mmproj /app/models/unsloth/Qwen3.8-27B-GGUF/mmproj-Q8_0.gguf
+      --port 9931
+      --cors-origins localhost
       --metrics
       --verbosity 4
       --load-mode mlock
@@ -548,6 +572,8 @@ models:
     cmd: >
       ${macros-docker-llama}
       --model /app/models/unsloth/GLM-4.7-Flash-GGUF/GLM-4.7-Flash-UD-Q4_K_XL.gguf
+      --port 9931
+      --cors-origins localhost
       --metrics
       --verbosity 4
       --load-mode mlock
@@ -573,6 +599,8 @@ models:
     cmd: >
       ${macros-docker-llama}
       --model /app/models/unsloth/Nemotron-3-Nano-30B-A3B-GGUF/Nemotron-3-Nano-30B-A3B-UD-Q4_K_XL.gguf
+      --port 9931
+      --cors-origins localhost
       --metrics
       --verbosity 4
       --load-mode mlock
@@ -597,6 +625,8 @@ models:
     cmd: >
       ${macros-docker-llama}
       --model /app/models/AesSedai/NVIDIA-Nemotron-3-Super-120B-A12B-GGUF/NVIDIA-Nemotron-3-Super-120B-A12B-BF16-IQ4_XS-00001-of-00003.gguf
+      --port 9931
+      --cors-origins localhost
       --metrics
       --verbosity 4
       --load-mode mlock
