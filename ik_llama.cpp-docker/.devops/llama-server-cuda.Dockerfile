@@ -54,6 +54,6 @@ COPY --from=build /app/build/bin/llama-server /app/llama-server
 
 WORKDIR /app
 
-HEALTHCHECK CMD [ "curl", "-f", "http://localhost:8080/health" ]
+HEALTHCHECK --interval=10s --timeout=1s CMD [ "curl", "-f", "http://localhost:8080/health" ]
 
 ENTRYPOINT [ "/app/llama-server" ]

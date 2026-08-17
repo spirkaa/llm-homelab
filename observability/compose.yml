@@ -62,11 +62,11 @@ services:
       - -journald.streamFields=_HOSTNAME,_SYSTEMD_UNIT,_PID
       - -journald.ignoreFields=MESSAGE_ID,INVOCATION_ID,USER_INVOCATION_ID
       - -journald.ignoreFields=_BOOT_ID,_MACHINE_ID,_SYSTEMD_INVOCATION_ID,_STREAM_ID,_UID
-    healthcheck:
-      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:9428/health"]
-      interval: 10s
-      timeout: 1s
-      retries: 3
+    # healthcheck:
+    #   test: ["CMD", "wget", "-qO-", "http://127.0.0.1:9428/health"]
+    #   interval: 10s
+    #   timeout: 1s
+    #   retries: 3
     labels:
       - traefik.enable=true
       - traefik.http.routers.victorialogs.rule=Host(`victorialogs.ai.devmem.ru`)
@@ -90,8 +90,8 @@ services:
         target: /var/lib/docker
       - ./vector/vector.yaml:/etc/vector/vector.yaml:ro
     depends_on:
-      victorialogs:
-        condition: service_healthy
+      # victorialogs:
+      #   condition: service_healthy
       vmsingle:
         condition: service_healthy
     networks:
@@ -148,7 +148,7 @@ services:
             - capabilities:
                 - gpu
     healthcheck:
-      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:5050/"]
+      test: ["CMD", "python", "-c", "import urllib.request, sys; urllib.request.urlopen('http://127.0.0.1:5050/', timeout=1); sys.exit(0)"]
       interval: 10s
       timeout: 1s
       retries: 3
@@ -165,7 +165,7 @@ services:
     environment:
       - LLAMA_SWAP_BASE_URL=http://llama-swap:8080
     healthcheck:
-      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:8081/"]
+      test: ["CMD", "python", "-c", "import urllib.request, sys; urllib.request.urlopen('http://127.0.0.1:8081/', timeout=1); sys.exit(0)"]
       interval: 10s
       timeout: 1s
       retries: 3

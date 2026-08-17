@@ -28,12 +28,6 @@ SHELL [ "/bin/bash", "-euxo", "pipefail", "-c" ]
 RUN addgroup --system --gid 1000 app \
     && adduser --system --uid 1000 --ingroup app app
 
-RUN apt-get update \
-    && apt-get install -y --no-install-suggests --no-install-recommends \
-        wget \
-    && apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false \
-    && rm -rf /var/lib/apt/lists/*
-
 COPY --from=build ${UV_PROJECT_ENVIRONMENT} ${UV_PROJECT_ENVIRONMENT}
 ENV PATH="${UV_PROJECT_ENVIRONMENT}/bin:${PATH}"
 
