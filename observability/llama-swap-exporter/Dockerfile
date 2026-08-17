@@ -41,6 +41,7 @@ WORKDIR /app
 
 COPY --chown=app:app app.py ./
 
+# hadolint ignore=DL3066
 USER app
 
 EXPOSE 8081

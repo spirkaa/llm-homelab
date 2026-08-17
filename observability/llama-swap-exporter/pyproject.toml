@@ -10,3 +10,49 @@ dependencies = [
   "python-dotenv>=1.2.2",
   "requests>=2.34.2",
 ]
+
+[dependency-groups]
+dev = [
+  "pre-commit>=4.6.2",
+  "ruff>=0.16.3",
+  "pytest>=9.1.1",
+  "pytest-cov>=7.1.0",
+  "pytest-mock>=3.15.1",
+  "pytest-responses>=0.6.0",
+  "pytest-sugar>=1.1.1",
+  "pytest-randomly>=4.1.0",
+]
+
+[tool.pytest.ini_options]
+addopts = "-ra --cov=. --cov-report term-missing:skip-covered"
+
+[tool.coverage.run]
+branch = true
+
+[tool.coverage.report]
+exclude_also = ["if __name__ == .__main__.:", "if TYPE_CHECKING:"]
+precision = 2
+
+[tool.ruff.lint]
+select = ["ALL"]
+ignore = [
+  "E501",   # line length violations
+  "D203",   # one-blank-line-before-class
+  "D213",   # multi-line-summary-second-line
+  "COM812", # missing-trailing-comma
+  "ISC001", # single-line-implicit-string-concatenation
+  "CPY001", # missing-copyright-notice
+]
+
+[tool.ruff.lint.per-file-ignores]
+"*test*" = [
+  "D",       # pydocstyle
+  "ANN",     # tests don't have to use annotations
+  "S101",    # allow assert statements in test cases
+  "PLR0913", # tests can use many arguments for fixtures
+  "SLF001",  # tests can access private members
+  "ARG002",  # tests can have unused arguments
+]
+
+[tool.ruff.lint.isort]
+combine-as-imports = true
