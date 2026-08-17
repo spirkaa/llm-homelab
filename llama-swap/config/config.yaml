@@ -643,3 +643,77 @@ models:
         "${MODEL_ID}:tools":
           temperature: 0.6
           top_p: 0.95
+
+  laguna-s-2.1-118b-a8b:
+    # https://huggingface.co/unsloth/Laguna-S-2.1-GGUF
+    proxy: ${macros-docker-proxy}
+    cmdStop: ${macros-docker-stop}
+    cmd: >
+      ${macros-docker-llama}
+      --model /app/models/unsloth/Laguna-S-2.1-GGUF/Laguna-S-2.1-UD-IQ4_NL-00001-of-00003.gguf
+      --port 9931
+      --cors-origins localhost
+      --metrics
+      --verbosity 4
+      --load-mode mlock
+      --n-gpu-layers 99
+      --n-cpu-moe 35
+      --fit-target 256
+      --batch-size 2048
+      --ubatch-size 2048
+      --parallel 1
+      --cache-type-k q8_0
+      --cache-type-v q8_0
+      --spec-default
+      --jinja
+    filters:
+      setParams:
+        temperature: 1.0
+        min_p: 0.0
+        top_p: 1.0
+        top_k: 20
+        chat_template_kwargs:
+          enable_thinking: true
+          preserve_thinking: true
+      setParamsByID:
+        "${MODEL_ID}:instruct":
+          chat_template_kwargs:
+            enable_thinking: false
+            preserve_thinking: false
+
+  muse-glimmer-30b:
+    # https://unsloth.ai/docs/models/muse-glimmer
+    proxy: ${macros-docker-proxy}
+    cmdStop: ${macros-docker-stop}
+    cmd: >
+      ${macros-docker-llama}
+      --model /app/models/meta-models/Muse-Glimmer-30B-GGUF/Muse-Glimmer-30B-KQuant-17GB-Q4_K_M.gguf
+      --model-draft /app/models/meta-models/Muse-Glimmer-30B-GGUF/dflash-Muse-Glimmer-30B-Q4_K_M.gguf
+      --mmproj /app/models/meta-models/Muse-Glimmer-30B-GGUF/mmproj-Muse-Glimmer-30B-Q4_K_M.gguf
+      --port 9931
+      --cors-origins localhost
+      --metrics
+      --verbosity 4
+      --load-mode mlock
+      --parallel 1
+      --spec-default
+      --spec-type draft-dflash
+      --spec-draft-n-max 15
+      --reasoning-preserve
+      --jinja
+    filters:
+      setParams:
+        temperature: 1.0
+        min_p: 0.0
+        top_p: 0.95
+        top_k: 64
+      setParamsByID:
+        "${MODEL_ID}:xhigh":
+          chat_template_kwargs:
+            reasoning_strength: xhigh
+        "${MODEL_ID}:medium":
+          chat_template_kwargs:
+            reasoning_strength: medium
+        "${MODEL_ID}:low":
+          chat_template_kwargs:
+            reasoning_strength: low
