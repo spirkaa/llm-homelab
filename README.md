@@ -65,5 +65,7 @@ WantedBy=multi-user.target
 - AMD Ryzen 7 3800X
 - GIGABYTE X570 AORUS PRO
 - 4x16 GB DDR4-3200 G.SKILL F4-3200C16S-16GVK
-- 1 TB Samsung 980 Pro
-- Fractal Design Define R6, Corsair RM850i
+- 1 TB Samsung SSD 980 PRO
+- 2 TB Samsung SSD 990 PRO
+- Fractal Design Define R6
+- Corsair RM850i
