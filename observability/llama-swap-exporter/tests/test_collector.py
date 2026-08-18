@@ -2,23 +2,19 @@
 
 import pytest
 import requests
-from conftest import BASE_URL, SAMPLE_METRICS_TEXT, make_activity_item
+from conftest import (
+    ACTIVITY_URL,
+    BASE_URL,
+    RUNNING_URL,
+    SAMPLE_METRICS_TEXT,
+    make_activity_item,
+)
 from prometheus_client import generate_latest
 from prometheus_client.parser import text_string_to_metric_families
 
-RUNNING_URL = f"{BASE_URL}/running"
-ACTIVITY_URL = f"{BASE_URL}/api/metrics/activity"
+from app import GAUGE_SPECS
 
-LLAMASWAP_GAUGE_NAMES = {
-    "llamaswap_model_cache_tokens",
-    "llamaswap_model_input_tokens",
-    "llamaswap_model_output_tokens",
-    "llamaswap_model_prompt_per_second",
-    "llamaswap_model_tokens_per_second",
-    "llamaswap_model_duration_ms",
-    "llamaswap_model_draft_tokens",
-    "llamaswap_model_draft_acc_tokens",
-}
+LLAMASWAP_GAUGE_NAMES = set(GAUGE_SPECS)
 
 
 def _family_names(families) -> set[str]:
@@ -92,8 +88,10 @@ def test_json_to_gauges_missing_token_fields_default_to_zero(collector):
 def test_json_to_gauges_null_duration(collector):
     item = make_activity_item("m1", duration_ms=None)
     families = collector.json_to_gauges([item])
+    by_name = {family.name: family for family in families}
 
     assert _family_names(families) == LLAMASWAP_GAUGE_NAMES
+    assert _sample_value(by_name["llamaswap_model_duration_ms"], "m1") == 0.0
 
 
 def test_json_to_gauges_null_tokens(collector):
@@ -101,7 +99,30 @@ def test_json_to_gauges_null_tokens(collector):
     families = collector.json_to_gauges([item])
 
     by_name = {family.name: family for family in families}
+    for name in LLAMASWAP_GAUGE_NAMES - {"llamaswap_model_duration_ms"}:
+        assert _sample_value(by_name[name], "m1") == 0.0
+    # duration_ms lives on the item itself, not in tokens
+    assert _sample_value(by_name["llamaswap_model_duration_ms"], "m1") == 1234.5
+
+
+def test_json_to_gauges_null_token_fields_default_to_zero(collector):
+    item = make_activity_item("m1", tokens={"cache_tokens": None, "draft_tokens": 5})
+    families = collector.json_to_gauges([item])
+    by_name = {family.name: family for family in families}
+
     assert _sample_value(by_name["llamaswap_model_cache_tokens"], "m1") == 0.0
+    assert _sample_value(by_name["llamaswap_model_draft_tokens"], "m1") == 5.0
+
+
+def test_json_to_gauges_tokens_not_a_dict(collector):
+    item = make_activity_item("m1", tokens="oops")
+    families = collector.json_to_gauges([item])
+    by_name = {family.name: family for family in families}
+
+    for name in LLAMASWAP_GAUGE_NAMES - {"llamaswap_model_duration_ms"}:
+        assert _sample_value(by_name[name], "m1") == 0.0
+    # duration_ms lives on the item itself, not in tokens
+    assert _sample_value(by_name["llamaswap_model_duration_ms"], "m1") == 1234.5
 
 
 def test_json_to_gauges_entry_without_model_skipped(collector):

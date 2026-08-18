@@ -5,13 +5,9 @@ from urllib.parse import parse_qs, urlparse
 
 import pytest
 import requests
-from conftest import BASE_URL, make_activity_item
+from conftest import ACTIVITY_URL, BASE_URL, RUNNING_URL, USER_AGENT, make_activity_item
 
 from app import LlamaSwapApi
-
-RUNNING_URL = f"{BASE_URL}/running"
-ACTIVITY_URL = f"{BASE_URL}/api/metrics/activity"
-USER_AGENT = "llama-swap-exporter/0.1.0"
 
 
 def _running_payload(models: list[dict]) -> dict:
@@ -109,6 +105,26 @@ def test_get_llama_swap_activity_multiple_pages(client, responses):
     assert len(responses.calls) == 2
 
 
+def test_get_running_models_invalid_json_returns_empty(client, responses, caplog):
+    responses.add(
+        responses.GET, RUNNING_URL, body="not json", content_type="text/plain"
+    )
+
+    with caplog.at_level("WARNING"):
+        assert client.get_running_models() == []
+    assert any("Invalid JSON" in record.message for record in caplog.records)
+
+
+def test_get_llama_swap_activity_invalid_json(client, responses, caplog):
+    responses.add(
+        responses.GET, ACTIVITY_URL, body="not json", content_type="text/plain"
+    )
+
+    with caplog.at_level("WARNING"):
+        assert client.get_llama_swap_activity() == []
+    assert any("Invalid JSON" in record.message for record in caplog.records)
+
+
 def test_get_llama_swap_activity_stops_on_empty_data(client, responses):
     responses.add(
         responses.GET,
@@ -147,9 +163,6 @@ def test_get_llama_swap_activity_terminates_on_inconsistent_total_pages(
 
     def callback(request):
         state["calls"] += 1
-        if state["calls"] > 200:
-            msg = "pagination loop did not terminate"
-            raise requests.exceptions.ConnectionError(msg)
         page = _page_query(request)
         body = json.dumps(
             {
@@ -161,14 +174,19 @@ def test_get_llama_swap_activity_terminates_on_inconsistent_total_pages(
 
     responses.add_callback(responses.GET, ACTIVITY_URL, callback=callback)
 
-    assert isinstance(client.get_llama_swap_activity(), list)
+    result = client.get_llama_swap_activity()
+    assert len(result) == 100
+    # Loop is bounded by ACTIVITY_MAX_PAGES
+    assert state["calls"] == 100
 
 
 def test_get_llama_swap_metrics_keeps_latest_per_model(client, responses):
+    # m1 ts=2 after m1 ts=3: the older duplicate must not win
     items = [
         make_activity_item("m1", timestamp=1),
         make_activity_item("m1", timestamp=3),
         make_activity_item("m2", timestamp=2),
+        make_activity_item("m1", timestamp=2),
     ]
     responses.add(responses.GET, ACTIVITY_URL, json={"data": items, "total_pages": 1})
 
@@ -216,6 +234,12 @@ def test_get_llama_swap_activity_network_error(client, responses, exc):
     responses.add(responses.GET, ACTIVITY_URL, body=exc)
 
     assert client.get_llama_swap_activity() == []
+
+
+def test_client_keeps_trailing_slash():
+    client = LlamaSwapApi(f"{BASE_URL}/")
+
+    assert client.base_url == f"{BASE_URL}/"
 
 
 def test_get_running_models_base_url_with_path_prefix(responses):

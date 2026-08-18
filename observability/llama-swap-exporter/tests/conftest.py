@@ -1,5 +1,6 @@
 """Shared fixtures for llama-swap-exporter tests."""
 
+import functools
 import threading
 from http.server import HTTPServer
 
@@ -11,6 +12,9 @@ import app
 from app import LlamaSwapApi
 
 BASE_URL = "http://llamaswap.test:8080"
+RUNNING_URL = f"{BASE_URL}/running"
+ACTIVITY_URL = f"{BASE_URL}/api/metrics/activity"
+USER_AGENT = "llama-swap-exporter/0.1.0"
 
 SAMPLE_METRICS_TEXT = """# HELP llamacpp:prompt_tokens_total Number of prompt tokens processed.
 # TYPE llamacpp:prompt_tokens_total counter
@@ -89,7 +93,10 @@ def clock(mocker) -> dict:
 def server():
     """An ephemeral HTTP server serving app.MetricsHandler."""
     httpd = HTTPServer(("127.0.0.1", 0), app.MetricsHandler)
-    thread = threading.Thread(target=httpd.serve_forever, daemon=True)
+    # Short poll interval so shutdown() in teardown doesn't wait ~0.5s.
+    thread = threading.Thread(
+        target=functools.partial(httpd.serve_forever, poll_interval=0.01), daemon=True
+    )
     thread.start()
     yield f"http://127.0.0.1:{httpd.server_address[1]}"
     httpd.shutdown()

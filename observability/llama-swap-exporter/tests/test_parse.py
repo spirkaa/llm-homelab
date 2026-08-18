@@ -56,6 +56,10 @@ def test_empty_input(parser):
     assert parser.parse_model_metrics("m1", "") == {}
 
 
+def test_invalid_text_returns_empty(parser):
+    assert parser.parse_model_metrics("m1", "foo 1 bar\n") == {}
+
+
 def test_ignores_blank_lines(parser):
     text = (
         "# HELP llamacpp:a_counter Help a.\n"
