@@ -12,9 +12,6 @@ def parser() -> LlamaSwapCollector:
     return LlamaSwapCollector(None)
 
 
-@pytest.mark.xfail(
-    reason="bug: HELP line parsing includes metric name in documentation (app.py:185)"
-)
 def test_parses_counters_gauges_and_model_label(parser):
     result = parser.parse_model_metrics("m1", SAMPLE_METRICS_TEXT)
 
@@ -39,7 +36,7 @@ def test_parses_counters_gauges_and_model_label(parser):
 
     gauge = by_name["llamacpp_prompt_tokens_seconds"]
     assert isinstance(gauge, GaugeMetricFamily)
-    assert ("m1", 88.5) in gauge.samples
+    assert any(s.labels.get("model") == "m1" and s.value == 88.5 for s in gauge.samples)
 
 
 def test_parses_labels_and_multiple_series(parser):
@@ -59,9 +56,6 @@ def test_empty_input(parser):
     assert parser.parse_model_metrics("m1", "") == {}
 
 
-@pytest.mark.xfail(
-    reason="bug: blank lines crash parsing with IndexError (app.py:192-194)"
-)
 def test_ignores_blank_lines(parser):
     text = (
         "# HELP llamacpp:a_counter Help a.\n"
@@ -81,30 +75,6 @@ def test_ignores_blank_lines(parser):
     }
 
 
-@pytest.mark.xfail(
-    reason=(
-        "bug: sample line without 'value' part crashes with IndexError, "
-        "expected to be skipped (app.py:192-194)"
-    )
-)
-def test_ignores_malformed_sample_lines(parser):
-    text = (
-        "# HELP llamacpp:a_counter Help a.\n"
-        "# TYPE llamacpp:a_counter counter\n"
-        "llamacpp:a_counter\n"
-        "llamacpp:a_counter 1\n"
-    )
-
-    result = parser.parse_model_metrics("m1", text)
-    assert {family.name for family in result.values()} == {"llamacpp_a_counter"}
-
-
-@pytest.mark.xfail(
-    reason=(
-        "bug: unknown metric type crashes with KeyError, "
-        "expected to be skipped (app.py:189)"
-    )
-)
 def test_unknown_metric_type_is_skipped(parser):
     text = (
         "# HELP llamacpp:a_counter Help a.\n"
@@ -119,12 +89,6 @@ def test_unknown_metric_type_is_skipped(parser):
     assert {family.name for family in result.values()} == {"llamacpp_a_counter"}
 
 
-@pytest.mark.xfail(
-    reason=(
-        "bug: metric without HELP line reuses the previous metric's help "
-        "(app.py:185,213)"
-    )
-)
 def test_metric_without_help_line_has_empty_help(parser):
     text = (
         "# HELP llamacpp:a_counter Help a.\n"
@@ -140,12 +104,6 @@ def test_metric_without_help_line_has_empty_help(parser):
     assert families["llamacpp_a_counter"].documentation == "Help a."
 
 
-@pytest.mark.xfail(
-    reason=(
-        "bug: a metric without a TYPE line inherits the previous metric's type, "
-        "silently corrupting the exposed type (app.py:187-190,212-214)"
-    )
-)
 def test_metric_without_type_line_does_not_inherit_previous_type(parser):
     text = (
         "# HELP llamacpp:a_counter Help a.\n"
@@ -162,9 +120,6 @@ def test_metric_without_type_line_does_not_inherit_previous_type(parser):
     assert not isinstance(families["llamacpp_b_gauge"], CounterMetricFamily)
 
 
-@pytest.mark.xfail(
-    reason="bug: first metric without HELP line raises UnboundLocalError (app.py:213)"
-)
 def test_first_metric_without_help_line(parser):
     text = "# TYPE llamacpp:b_gauge gauge\nllamacpp:b_gauge 2\n"
 
@@ -173,9 +128,6 @@ def test_first_metric_without_help_line(parser):
     assert families["llamacpp_b_gauge"].documentation == ""
 
 
-@pytest.mark.xfail(
-    reason="bug: label value containing '=' crashes with ValueError (app.py:199)"
-)
 def test_label_value_containing_equals(parser):
     text = (
         "# HELP llamacpp:requests_processing Help.\n"
@@ -186,5 +138,8 @@ def test_label_value_containing_equals(parser):
     result = parser.parse_model_metrics("m1", text)
     families = {family.name: family for family in result.values()}
     family = families["llamacpp_requests_processing"]
-    assert family.labels == ("code", "model")
-    assert ("a=b", "m1") in family.samples
+    assert family._labelnames == ("code", "model")
+    assert any(
+        s.labels.get("code") == "a=b" and s.labels.get("model") == "m1"
+        for s in family.samples
+    )

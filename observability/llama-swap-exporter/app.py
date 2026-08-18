@@ -12,7 +12,12 @@ from urllib.parse import urljoin
 import requests
 from dotenv import load_dotenv
 from prometheus_client import CONTENT_TYPE_LATEST, REGISTRY, generate_latest
-from prometheus_client.core import CounterMetricFamily, GaugeMetricFamily
+from prometheus_client.core import (
+    CounterMetricFamily,
+    GaugeMetricFamily,
+    UnknownMetricFamily,
+)
+from prometheus_client.parser import text_string_to_metric_families
 from prometheus_client.registry import Collector
 
 logger = logging.getLogger(__name__)
@@ -179,40 +184,44 @@ class LlamaSwapCollector(Collector):
     def parse_model_metrics(self, model_name: str, metrics: str) -> dict:
         """Parse model metrics."""
         result = {}
-        for line in metrics.splitlines():
-            if line.startswith("# HELP"):
-                # # HELP llamacpp:prompt_tokens_total Number of prompt tokens processed.
-                metric_help = " ".join(line.split()[2:])
-                continue
-            if line.startswith("# TYPE"):
-                # # TYPE llamacpp:prompt_tokens_total counter
-                metric_type = METRIC_TYPES[line.split()[-1]]
-                continue
+        try:
+            for family in text_string_to_metric_families(metrics):
+                name = family.name.replace(":", "_")
+                typ = family.type
+                if typ in METRIC_TYPES:
+                    metric_cls = METRIC_TYPES[typ]
+                elif typ == "unknown":
+                    metric_cls = UnknownMetricFamily
+                else:
+                    logger.warning(
+                        "Skipping metric %s with unsupported type %s for model %s",
+                        family.name,
+                        typ,
+                        model_name,
+                    )
+                    continue
 
-            parts = line.split()
-            name_and_labels = parts[0]
-            metric_value = float(parts[1])
+                # Gather label names from all samples and add model
+                label_names_set = set()
+                for s in family.samples:
+                    label_names_set.update(s.labels.keys())
+                label_names_set.add("model")
+                label_names = tuple(sorted(label_names_set))
+                metric_key = (name, label_names)
 
-            if "{" in name_and_labels:
-                metric_name = name_and_labels.split("{")[0]
-                label_str = name_and_labels.split("{")[1].rstrip("}")
-                labels = dict(item.split("=") for item in label_str.split(","))
-                labels = {k: v.strip('"') for k, v in labels.items()}
-            else:
-                metric_name = name_and_labels
-                labels = {}
-
-            metric_name = metric_name.replace(":", "_")
-            labels["model"] = model_name
-
-            label_keys = tuple(sorted(labels.keys()))
-            label_values = tuple(labels[k] for k in label_keys)
-            metric_key = (metric_name, label_keys)
-            if metric_key not in result:
-                result[metric_key] = metric_type(
-                    metric_name, metric_help, labels=label_keys
-                )
-            result[metric_key].add_metric(label_values, metric_value)
+                if metric_key not in result:
+                    result[metric_key] = metric_cls(
+                        name, family.documentation, labels=list(label_names)
+                    )
+                mf = result[metric_key]
+                for s in family.samples:
+                    labels = dict(s.labels)
+                    labels["model"] = model_name
+                    label_values = tuple(labels.get(ln, "") for ln in label_names)
+                    mf.add_metric(label_values, s.value)
+        except Exception:
+            logger.exception("Failed to parse model metrics for %s", model_name)
+            return {}
         return result
 
     def collect(self) -> list:
