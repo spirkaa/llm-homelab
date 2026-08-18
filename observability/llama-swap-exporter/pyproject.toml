@@ -21,10 +21,14 @@ dev = [
   "pytest-responses>=0.6.0",
   "pytest-sugar>=1.1.1",
   "pytest-randomly>=4.1.0",
+  "pytest-timeout>=2.4.0",
 ]
 
 [tool.pytest.ini_options]
 addopts = "-ra --cov=. --cov-report term-missing:skip-covered"
+pythonpath = ["."]
+timeout = 30
+xfail_strict = true
 
 [tool.coverage.run]
 branch = true
@@ -52,6 +56,9 @@ ignore = [
   "PLR0913", # tests can use many arguments for fixtures
   "SLF001",  # tests can access private members
   "ARG002",  # tests can have unused arguments
+  "ARG001",  # tests may request fixtures for their side effects only
+  "PLR2004", # magic status codes / metric values are expected in tests
+  "INP001",  # tests are not a package
 ]
 
 [tool.ruff.lint.isort]
