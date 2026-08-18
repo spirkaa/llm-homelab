@@ -42,6 +42,9 @@ class LlamaSwapApi:
 
     def __init__(self, base_url: str, timeout: int = 5) -> None:
         """Initialize API client."""
+        # Normalize base URL to end with '/' for robust urljoin
+        if not base_url.endswith("/"):
+            base_url = base_url + "/"
         self.base_url = base_url
         self.timeout = timeout
         self.headers = {"User-Agent": "llama-swap-exporter/0.1.0"}
@@ -50,23 +53,33 @@ class LlamaSwapApi:
 
     def get_running_models(self) -> list[dict]:
         """Get running models."""
-        url = urljoin(self.base_url, "/running")
-        res = self.session.get(url, timeout=self.timeout)
-        res.raise_for_status()
-        return res.json().get("running", [])
+        url = urljoin(self.base_url, "running")
+        try:
+            res = self.session.get(url, timeout=self.timeout)
+            res.raise_for_status()
+            data = res.json()
+        except requests.exceptions.HTTPError:
+            raise
+        except requests.exceptions.RequestException as e:
+            logger.warning("Network error fetching running models: %s", e)
+            return []
+        except ValueError as e:
+            logger.warning("Invalid JSON fetching running models: %s", e)
+            return []
+        return data.get("running", [])
 
     def get_ready_models(self) -> list[dict]:
         """Get ready models."""
         models = self.get_running_models()
-        return [model for model in models if model["state"] == "ready"]
+        return [model for model in models if model.get("state") == "ready"]
 
     def get_model_metrics(self, model_name: str) -> str:
         """Get model metrics."""
-        url = urljoin(self.base_url, f"/upstream/{model_name}/metrics")
-        res = self.session.get(url, timeout=self.timeout)
+        url = urljoin(self.base_url, f"upstream/{model_name}/metrics")
         try:
+            res = self.session.get(url, timeout=self.timeout)
             res.raise_for_status()
-        except requests.exceptions.HTTPError as e:
+        except requests.exceptions.RequestException as e:
             logger.warning(
                 "HTTP error fetching model metrics for %s: %s", model_name, e
             )
@@ -75,21 +88,30 @@ class LlamaSwapApi:
 
     def get_llama_swap_activity(self) -> list[dict]:
         """Get llama-swap activity with pagination."""
-        url = urljoin(self.base_url, "/api/metrics/activity")
+        url = urljoin(self.base_url, "api/metrics/activity")
         all_items = []
         page = 1
         limit = 100
+        max_pages = 100
         while True:
+            if page > max_pages:
+                logger.warning("Pagination limit reached at page %s, stopping", page)
+                break
             params = {"page": page, "limit": limit}
-            res = self.session.get(url, params=params, timeout=self.timeout)
             try:
+                res = self.session.get(url, params=params, timeout=self.timeout)
                 res.raise_for_status()
-            except requests.exceptions.HTTPError as e:
+                result = res.json()
+            except requests.exceptions.RequestException as e:
                 logger.warning(
                     "HTTP error fetching llama-swap activity page %s: %s", page, e
                 )
                 break
-            result = res.json()
+            except ValueError as e:
+                logger.warning(
+                    "Invalid JSON fetching llama-swap activity page %s: %s", page, e
+                )
+                break
             data = result.get("data", [])
             if not data:
                 break
@@ -103,7 +125,15 @@ class LlamaSwapApi:
     def get_llama_swap_metrics(self) -> list[dict]:
         """Get latest metrics per model."""
         activity = self.get_llama_swap_activity()
-        data_sorted = sorted(activity, key=itemgetter("model"))
+        # Filter out malformed entries
+        valid_activity = [
+            a
+            for a in activity
+            if isinstance(a, dict) and "model" in a and "timestamp" in a
+        ]
+        if not valid_activity:
+            return []
+        data_sorted = sorted(valid_activity, key=itemgetter("model"))
         groups = itertools.groupby(data_sorted, key=itemgetter("model"))
         return [max(group, key=itemgetter("timestamp")) for _, group in groups]
 
@@ -148,9 +178,15 @@ class LlamaSwapCollector(Collector):
         )
 
         for entry in data:
-            common_label = [entry["model"]]
+            model_name = entry.get("model")
+            if not model_name:
+                logger.warning("Skipping activity entry without 'model'")
+                continue
+            common_label = [model_name]
 
-            tokens = entry.get("tokens", {})
+            tokens = entry.get("tokens") or {}
+            if not isinstance(tokens, dict):
+                tokens = {}
             cache_metric.add_metric(common_label, float(tokens.get("cache_tokens", 0)))
             input_metric.add_metric(common_label, float(tokens.get("input_tokens", 0)))
             output_metric.add_metric(
@@ -162,7 +198,8 @@ class LlamaSwapCollector(Collector):
             tokens_pps_metric.add_metric(
                 common_label, float(tokens.get("tokens_per_second", 0))
             )
-            duration_metric.add_metric(common_label, float(entry.get("duration_ms", 0)))
+            duration_ms = entry.get("duration_ms")
+            duration_metric.add_metric(common_label, float(duration_ms or 0))
             draft_tokens_metric.add_metric(
                 common_label, float(tokens.get("draft_tokens", 0))
             )
@@ -230,21 +267,31 @@ class LlamaSwapCollector(Collector):
         if current_time - self.last_scrape < REFRESH_INTERVAL:
             return list(self.cached_metrics)
 
-        self.cached_metrics.clear()
-        self.last_scrape = current_time
+        try:
+            new_metrics = []
+            models = self.client.get_ready_models()
+            for model in models:
+                model_name = model.get("model")
+                if not model_name:
+                    logger.warning("Skipping ready model entry without 'model' key")
+                    continue
+                model_metrics = self.client.get_model_metrics(model_name)
+                result = self.parse_model_metrics(model_name, model_metrics)
+                new_metrics.extend(result.values())
 
-        models = self.client.get_ready_models()
-        for model in models:
-            model_name = model["model"]
-            model_metrics = self.client.get_model_metrics(model_name)
-            result = self.parse_model_metrics(model_name, model_metrics)
-            self.cached_metrics.extend(result.values())
+            swap_metrics = self.client.get_llama_swap_metrics()
+            swap_metrics_families = self.json_to_gauges(swap_metrics)
+            new_metrics.extend(swap_metrics_families)
 
-        swap_metrics = self.client.get_llama_swap_metrics()
-        swap_metrics = self.json_to_gauges(swap_metrics)
-        self.cached_metrics.extend(swap_metrics)
-
-        return list(self.cached_metrics)
+            # Update cache on successful scrape
+            self.cached_metrics = new_metrics
+            self.last_scrape = current_time
+            return list(self.cached_metrics)
+        except Exception:
+            # Keep last good cache, update last_scrape to throttle retries
+            logger.exception("Failed to collect metrics, keeping last good cache")
+            self.last_scrape = current_time
+            raise
 
 
 class MetricsHandler(BaseHTTPRequestHandler):
@@ -252,7 +299,8 @@ class MetricsHandler(BaseHTTPRequestHandler):
 
     def do_GET(self) -> None:
         """Handle GET requests."""
-        if self.path == "/metrics":
+        # Support query strings: match path starting with /metrics
+        if self.path.startswith("/metrics"):
             try:
                 output = generate_latest(REGISTRY)
                 self.send_response(200)
@@ -264,12 +312,7 @@ class MetricsHandler(BaseHTTPRequestHandler):
                 logger.exception("Failed to generate metrics")
                 self.send_error(500, f"Failed to generate metrics: {e}")
         else:
-            self.send_response(200)
-            self.send_header("Content-Type", "text/html")
-            self.end_headers()
-            self.wfile.write(
-                b"<html><body><h1>Llama-swap Exporter</h1><p>See <a href='/metrics'>/metrics</a></p></body></html>"
-            )
+            self.send_error(404, "Not Found")
 
 
 def signal_handler(signum: int, _frame: object | None = None) -> None:

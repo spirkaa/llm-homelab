@@ -89,18 +89,13 @@ def test_json_to_gauges_missing_token_fields_default_to_zero(collector):
     assert _sample_value(by_name["llamaswap_model_duration_ms"], "m1") == 1234.5
 
 
-@pytest.mark.xfail(reason="bug: null 'duration_ms' raises TypeError (app.py:160)")
 def test_json_to_gauges_null_duration(collector):
     item = make_activity_item("m1", duration_ms=None)
     families = collector.json_to_gauges([item])
 
-    by_name = {family.name: family for family in families}
-    assert _family_names(by_name) == LLAMASWAP_GAUGE_NAMES
+    assert _family_names(families) == LLAMASWAP_GAUGE_NAMES
 
 
-@pytest.mark.xfail(
-    reason="bug: null 'tokens' object raises AttributeError (app.py:148)"
-)
 def test_json_to_gauges_null_tokens(collector):
     item = make_activity_item("m1", tokens=None)
     families = collector.json_to_gauges([item])
@@ -109,7 +104,6 @@ def test_json_to_gauges_null_tokens(collector):
     assert _sample_value(by_name["llamaswap_model_cache_tokens"], "m1") == 0.0
 
 
-@pytest.mark.xfail(reason="bug: entry without 'model' raises KeyError (app.py:146)")
 def test_json_to_gauges_entry_without_model_skipped(collector):
     families = collector.json_to_gauges(
         [make_activity_item("m1"), {"model_missing": True}]
@@ -187,9 +181,6 @@ def test_collect_multiple_models_exposes_metrics_for_each_model(
     assert b'llamaswap_model_input_tokens{model="m2"} 20.0' in output
 
 
-@pytest.mark.xfail(
-    reason="bug: a ready model entry without a 'model' key crashes the whole scrape (app.py:229)"
-)
 def test_collect_ready_model_missing_model_key(collector, clock, responses):
     responses.add(responses.GET, RUNNING_URL, json={"running": [{"state": "ready"}]})
     responses.add(
@@ -203,12 +194,6 @@ def test_collect_ready_model_missing_model_key(collector, clock, responses):
     assert _family_names(families) == LLAMASWAP_GAUGE_NAMES
 
 
-@pytest.mark.xfail(
-    reason=(
-        "bug: failed scrape wipes the last good cache, so subsequent scrapes "
-        "within the interval return no metrics (app.py:224-236)"
-    )
-)
 def test_failed_scrape_keeps_last_good_cache(collector, clock, responses):
     _register_scrape(responses, models=("m1",))
     good = collector.collect()
@@ -224,12 +209,6 @@ def test_failed_scrape_keeps_last_good_cache(collector, clock, responses):
     assert collector.collect() == good
 
 
-@pytest.mark.xfail(
-    reason=(
-        "bug: non-JSON response from the activity endpoint crashes the whole "
-        "scrape (unhandled res.json(), app.py:87)"
-    )
-)
 def test_collect_tolerates_invalid_activity_json(collector, clock, responses):
     responses.add(responses.GET, RUNNING_URL, json={"running": []})
     responses.add(

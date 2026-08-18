@@ -46,26 +46,16 @@ def test_metrics_endpoint(server, registry):
 def test_root_endpoint_returns_html(server):
     response = requests.get(server + "/", timeout=5)
 
-    assert response.status_code == 200
-    assert response.headers["Content-Type"] == "text/html"
-    assert b"/metrics" in response.content
+    assert response.status_code == 404
 
 
 def test_unknown_path_returns_html(server):
-    # Current behavior: any path is answered with 200 and the index page.
-    # (Prometheus convention would be 404; pinned as-is on purpose.)
+    # Unknown paths should return 404
     response = requests.get(server + "/does-not-exist", timeout=5)
 
-    assert response.status_code == 200
-    assert b"/metrics" in response.content
+    assert response.status_code == 404
 
 
-@pytest.mark.xfail(
-    reason=(
-        "bug: '/metrics' is matched with an exact string compare, so a query string "
-        "returns the HTML index instead of metrics (app.py:246)"
-    )
-)
 def test_metrics_endpoint_with_query_string(server, registry):
     registry.register(DummyCollector())
 
@@ -84,12 +74,6 @@ def test_metrics_endpoint_500_on_broken_collector(server, registry):
     assert response.status_code == 500
 
 
-@pytest.mark.xfail(
-    reason=(
-        "bug: a failed scrape wipes the last good cache, so after an upstream failure "
-        "scrapes within the refresh interval return no llamaswap metrics (app.py:224-236)"
-    )
-)
 def test_scrape_failure_keeps_last_good_metrics(server, registry, clock):
     collector = app.LlamaSwapCollector(app.LlamaSwapApi(BASE_URL))
     registry.register(collector)

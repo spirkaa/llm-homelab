@@ -49,9 +49,6 @@ def test_get_ready_models_filters_ready_only(client, responses):
     assert client.get_ready_models() == [{"model": "ready", "state": "ready"}]
 
 
-@pytest.mark.xfail(
-    reason="bug: KeyError on entry without 'state', expected to be skipped (app.py:56)"
-)
 def test_get_ready_models_missing_state(client, responses):
     models = [{"model": "m1"}, {"model": "m2", "state": "ready"}]
     responses.add(responses.GET, RUNNING_URL, json=_running_payload(models))
@@ -142,12 +139,6 @@ def test_get_llama_swap_activity_returns_partial_on_later_page_error(client, res
     assert client.get_llama_swap_activity() == first_page
 
 
-@pytest.mark.xfail(
-    reason=(
-        "bug: unbounded pagination loop on inconsistent total_pages, "
-        "and connection errors are not handled (app.py:77-95)"
-    )
-)
 def test_get_llama_swap_activity_terminates_on_inconsistent_total_pages(
     client, responses
 ):
@@ -186,9 +177,6 @@ def test_get_llama_swap_metrics_keeps_latest_per_model(client, responses):
     assert {item["model"]: item["timestamp"] for item in result} == {"m1": 3, "m2": 2}
 
 
-@pytest.mark.xfail(
-    reason="bug: KeyError on entry without 'model'/'timestamp' (app.py:101-103)"
-)
 def test_get_llama_swap_metrics_malformed_entries(client, responses):
     items = [
         make_activity_item("m1", timestamp=1),
@@ -210,12 +198,6 @@ NETWORK_ERRORS = [
 
 
 @pytest.mark.parametrize("exc", NETWORK_ERRORS)
-@pytest.mark.xfail(
-    reason=(
-        "bug: network errors are not handled, only HTTPError is caught, so a "
-        "llama-swap restart crashes the whole scrape (app.py:49-51)"
-    )
-)
 def test_get_running_models_network_error(client, responses, exc):
     responses.add(responses.GET, RUNNING_URL, body=exc)
 
@@ -223,9 +205,6 @@ def test_get_running_models_network_error(client, responses, exc):
 
 
 @pytest.mark.parametrize("exc", NETWORK_ERRORS)
-@pytest.mark.xfail(
-    reason="bug: network errors are not handled, only HTTPError is caught (app.py:61-68)"
-)
 def test_get_model_metrics_network_error(client, responses, exc):
     responses.add(responses.GET, f"{BASE_URL}/upstream/m1/metrics", body=exc)
 
@@ -233,16 +212,12 @@ def test_get_model_metrics_network_error(client, responses, exc):
 
 
 @pytest.mark.parametrize("exc", NETWORK_ERRORS)
-@pytest.mark.xfail(
-    reason="bug: network errors are not handled, only HTTPError is caught (app.py:79-86)"
-)
 def test_get_llama_swap_activity_network_error(client, responses, exc):
     responses.add(responses.GET, ACTIVITY_URL, body=exc)
 
     assert client.get_llama_swap_activity() == []
 
 
-@pytest.mark.xfail(reason="bug: urljoin drops a base URL path prefix (app.py:48)")
 def test_get_running_models_base_url_with_path_prefix(responses):
     prefixed_client = LlamaSwapApi(f"{BASE_URL}/proxy")
     responses.add(
