@@ -440,7 +440,7 @@ models:
     cmdStop: ${macros-docker-stop}
     cmd: >
       ${macros-docker-llama}
-      --model /app/models/unsloth/Qwen3.8-27B-GGUF/Qwen3.8-27B-Q4_K_M.gguf
+      --model /app/models/unsloth/Qwen3.8-27B-GGUF/Qwen3.8-27B-UD-Q4_K_M.gguf
       --mmproj /app/models/unsloth/Qwen3.8-27B-GGUF/mmproj-Q8_0.gguf
       --port 9931
       --cors-origins localhost
