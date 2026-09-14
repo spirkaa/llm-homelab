@@ -2,7 +2,7 @@
 
 import pytest
 from conftest import SAMPLE_METRICS_TEXT
-from prometheus_client.core import CounterMetricFamily, GaugeMetricFamily
+from prometheus_client.core import CounterMetricFamily, GaugeMetricFamily, Metric
 
 from app import LlamaSwapCollector
 
@@ -79,18 +79,61 @@ def test_ignores_blank_lines(parser):
     }
 
 
-def test_unknown_metric_type_is_skipped(parser):
+def test_parses_histogram_forwarding_buckets_sum_and_count(parser):
     text = (
-        "# HELP llamacpp:a_counter Help a.\n"
-        "# TYPE llamacpp:a_counter counter\n"
-        "llamacpp:a_counter 1\n"
-        "# HELP llamacpp:b_summary Help b.\n"
-        "# TYPE llamacpp:b_summary summary\n"
-        "llamacpp:b_summary 2\n"
+        "# HELP vllm:prompt_tokens Number of prompt tokens processed.\n"
+        "# TYPE vllm:prompt_tokens histogram\n"
+        'vllm:prompt_tokens_bucket{le="1.0"} 1\n'
+        'vllm:prompt_tokens_bucket{le="+Inf"} 5\n'
+        "vllm:prompt_tokens_count 5\n"
+        "vllm:prompt_tokens_sum 123.5\n"
     )
 
     result = parser.parse_model_metrics("m1", text)
-    assert {family.name for family in result.values()} == {"llamacpp_a_counter"}
+
+    assert set(result) == {"vllm_prompt_tokens"}
+    family = result["vllm_prompt_tokens"]
+    assert family.type == "histogram"
+    assert family.documentation == "Number of prompt tokens processed."
+    by_sample = {(s.name, s.labels.get("le")): s.value for s in family.samples}
+    assert by_sample[("vllm_prompt_tokens_bucket", "1.0")] == 1.0
+    assert by_sample[("vllm_prompt_tokens_bucket", "+Inf")] == 5.0
+    assert by_sample[("vllm_prompt_tokens_count", None)] == 5.0
+    assert by_sample[("vllm_prompt_tokens_sum", None)] == 123.5
+    assert all(s.labels.get("model") == "m1" for s in family.samples)
+
+
+def test_parses_summary_forwarding_quantiles_count_and_sum(parser):
+    text = (
+        "# HELP vllm:ttft Time to first token.\n"
+        "# TYPE vllm:ttft summary\n"
+        'vllm:ttft{quantile="0.5"} 10\n'
+        'vllm:ttft{quantile="0.9"} 20\n'
+        "vllm:ttft_count 100\n"
+        "vllm:ttft_sum 900\n"
+    )
+
+    result = parser.parse_model_metrics("m1", text)
+
+    assert set(result) == {"vllm_ttft"}
+    family = result["vllm_ttft"]
+    assert family.type == "summary"
+    by_sample = {(s.name, s.labels.get("quantile")): s.value for s in family.samples}
+    assert by_sample[("vllm_ttft", "0.5")] == 10.0
+    assert by_sample[("vllm_ttft", "0.9")] == 20.0
+    assert by_sample[("vllm_ttft_count", None)] == 100.0
+    assert by_sample[("vllm_ttft_sum", None)] == 900.0
+    assert all(s.labels.get("model") == "m1" for s in family.samples)
+
+
+def test_build_family_skips_unhandled_type(parser):
+    family = Metric("weird_metric", "Some doc", "gauge")
+    family.type = "mystery"
+    family.add_sample("weird_metric", {"a": "b"}, 1.0)
+
+    result = parser._build_family(family, "m1")
+
+    assert result is None
 
 
 def test_metric_without_help_line_has_empty_help(parser):

@@ -9,7 +9,12 @@ from urllib.parse import urljoin, urlsplit
 
 import requests
 from dotenv import load_dotenv
-from prometheus_client import CONTENT_TYPE_LATEST, REGISTRY, generate_latest
+from prometheus_client import (
+    CONTENT_TYPE_LATEST,
+    REGISTRY,
+    disable_created_metrics,
+    generate_latest,
+)
 from prometheus_client.core import (
     CounterMetricFamily,
     GaugeMetricFamily,
@@ -34,6 +39,34 @@ REFRESH_INTERVAL = int(os.getenv("REFRESH_INTERVAL", "15"))
 EXPORTER_PORT = int(os.getenv("EXPORTER_PORT", "8081"))
 
 METRIC_TYPES = {"counter": CounterMetricFamily, "gauge": GaugeMetricFamily}
+# Families whose samples are re-emitted verbatim (bucket/quantile/sum/count
+# lines) instead of being rebuilt through the dedicated *MetricFamily classes,
+# which cannot round-trip more than one sample kind.
+FORWARD_TYPES = {"histogram", "summary", "gaugehistogram", "info", "stateset"}
+# Family names claimed by the default REGISTRY's builtin collectors
+# (GCCollector, PlatformCollector, ProcessCollector). A model server that is
+# a Python process exposes these metrics too; re-emitting them would make
+# REGISTRY.register raise DuplicateTimeseries, so such families are skipped.
+BUILTIN_FAMILY_NAMES = frozenset(
+    {
+        "python_info",
+        "python_gc_collections",
+        "python_gc_objects_collected",
+        "python_gc_objects_uncollectable",
+        "process_virtual_memory_bytes",
+        "process_resident_memory_bytes",
+        "process_start_time_seconds",
+        "process_cpu_seconds",
+        "process_cpu_seconds_total",
+        "process_open_fds",
+        "process_max_fds",
+        # Separate *_created gauge families in pre-OpenMetrics exposition.
+        "python_gc_collections_created",
+        "python_gc_objects_collected_created",
+        "python_gc_objects_uncollectable_created",
+        "process_cpu_seconds_created",
+    }
+)
 
 ACTIVITY_PAGE_SIZE = 100
 ACTIVITY_MAX_PAGES = 100
@@ -81,6 +114,8 @@ GAUGE_SPECS: dict[str, tuple[str, bool, str]] = {
         "Number of draft accepted tokens.",
     ),
 }
+
+disable_created_metrics()
 
 
 class LlamaSwapApi:
@@ -209,37 +244,71 @@ class LlamaSwapCollector(Collector):
                 families[name].add_metric([model_name], float(source.get(field) or 0))
         return list(families.values())
 
+    def _forward_family(self, name: str, family: Metric, model_name: str) -> Metric:
+        """Re-emit a multi-sample-kind family (histogram, summary, ...) verbatim.
+
+        The dedicated ``*MetricFamily`` classes only carry a single sample kind,
+        so each parsed sample is forwarded unchanged apart from the injected
+        ``model`` label and the ``:`` to ``_`` name rewrite.
+        """
+        mf = Metric(name, family.documentation, family.type)
+        for s in family.samples:
+            out_name = name + s.name[len(family.name) :]
+            labels = dict(s.labels)
+            labels["model"] = model_name
+            mf.add_sample(out_name, labels, s.value)
+        return mf
+
+    def _build_family(self, family: Metric, model_name: str) -> Metric | None:
+        """Build the exporter's representation of one parsed family.
+
+        Counters, gauges, and untyped metrics are rebuilt through the dedicated
+        ``*MetricFamily`` classes; histogram/summary-like families are re-emitted
+        verbatim. Families clashing with the default registry's builtin
+        collectors are skipped, as are unsupported types, so a single odd
+        family never drops the rest of the scrape.
+        """
+        name = family.name.replace(":", "_", 1)
+        if name in BUILTIN_FAMILY_NAMES:
+            logger.debug("Skipping builtin metric %s for model %s", name, model_name)
+            return None
+        typ = family.type
+        if typ in FORWARD_TYPES:
+            return self._forward_family(name, family, model_name)
+
+        if typ in METRIC_TYPES:
+            metric_cls = METRIC_TYPES[typ]
+        elif typ == "unknown":
+            metric_cls = UnknownMetricFamily
+        else:
+            logger.warning(
+                "Skipping metric %s with unsupported type %s for model %s",
+                family.name,
+                typ,
+                model_name,
+            )
+            return None
+
+        # Union of label names across all samples, plus our model label
+        label_names = tuple(
+            sorted({ln for s in family.samples for ln in s.labels} | {"model"})
+        )
+        mf = metric_cls(name, family.documentation, labels=list(label_names))
+        for s in family.samples:
+            labels = dict(s.labels)
+            labels["model"] = model_name
+            label_values = tuple(labels.get(ln, "") for ln in label_names)
+            mf.add_metric(label_values, s.value)
+        return mf
+
     def parse_model_metrics(self, model_name: str, metrics: str) -> dict[str, Metric]:
         """Parse model metrics."""
         result: dict[str, Metric] = {}
         try:
             for family in text_string_to_metric_families(metrics):
-                name = family.name.replace(":", "_", 1)
-                typ = family.type
-                if typ in METRIC_TYPES:
-                    metric_cls = METRIC_TYPES[typ]
-                elif typ == "unknown":
-                    metric_cls = UnknownMetricFamily
-                else:
-                    logger.warning(
-                        "Skipping metric %s with unsupported type %s for model %s",
-                        family.name,
-                        typ,
-                        model_name,
-                    )
-                    continue
-
-                # Union of label names across all samples, plus our model label
-                label_names = tuple(
-                    sorted({ln for s in family.samples for ln in s.labels} | {"model"})
-                )
-                mf = metric_cls(name, family.documentation, labels=list(label_names))
-                for s in family.samples:
-                    labels = dict(s.labels)
-                    labels["model"] = model_name
-                    label_values = tuple(labels.get(ln, "") for ln in label_names)
-                    mf.add_metric(label_values, s.value)
-                result[name] = mf
+                mf = self._build_family(family, model_name)
+                if mf is not None:
+                    result[mf.name] = mf
         except Exception:
             logger.exception("Failed to parse model metrics for %s", model_name)
             return {}

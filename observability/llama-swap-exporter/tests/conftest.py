@@ -31,6 +31,49 @@ llamacpp:requests_processing{mode="generate",server="srv1"} 1
 llamacpp:requests_processing{mode="chat",server="srv1"} 0
 """
 
+# A model server that is a Python process: on top of llamacpp metrics it
+# exposes prometheus_client's own gc/platform/process collectors.
+PYTHON_SERVER_METRICS_TEXT = """# HELP llamacpp:prompt_tokens_total Number of prompt tokens processed.
+# TYPE llamacpp:prompt_tokens_total counter
+llamacpp:prompt_tokens_total 1234
+# HELP llamacpp:tokens_predicted_total Number of generated tokens.
+# TYPE llamacpp:tokens_predicted_total counter
+llamacpp:tokens_predicted_total 567
+# HELP llamacpp:requests_processing Request slots occupied by processing requests.
+# TYPE llamacpp:requests_processing gauge
+llamacpp:requests_processing{mode="generate",server="srv1"} 1
+# HELP process_virtual_memory_bytes Virtual memory size in bytes.
+# TYPE process_virtual_memory_bytes gauge
+process_virtual_memory_bytes 12345678
+# HELP process_resident_memory_bytes Resident memory size in bytes.
+# TYPE process_resident_memory_bytes gauge
+process_resident_memory_bytes 1234567
+# HELP process_start_time_seconds Start time of the process since unix epoch in seconds.
+# TYPE process_start_time_seconds gauge
+process_start_time_seconds 1700000000
+# HELP process_open_fds Number of open file descriptors.
+# TYPE process_open_fds gauge
+process_open_fds 25
+# HELP process_max_fds Maximum number of open file descriptors.
+# TYPE process_max_fds gauge
+process_max_fds 1024
+# HELP process_cpu_seconds Total user and system CPU time spent in seconds.
+# TYPE process_cpu_seconds counter
+process_cpu_seconds_total 12.5
+# HELP python_info Python platform information
+# TYPE python_info gauge
+python_info{implementation="CPython",major="3",minor="14",patchlevel="0",version="3.14.0"} 1
+# HELP python_gc_collections Number of times this generation was collected
+# TYPE python_gc_collections counter
+python_gc_collections{generation="0"} 10
+# HELP python_gc_objects_collected Objects collected during gc
+# TYPE python_gc_objects_collected counter
+python_gc_objects_collected{generation="0"} 100
+# HELP python_gc_objects_uncollectable Uncollectable objects found during GC
+# TYPE python_gc_objects_uncollectable counter
+python_gc_objects_uncollectable{generation="0"} 0
+"""
+
 
 def make_activity_item(model: str = "m1", **overrides) -> dict:
     item = {

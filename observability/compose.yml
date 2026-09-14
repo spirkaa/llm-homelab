@@ -164,6 +164,7 @@ services:
       dockerfile: Dockerfile
     environment:
       - LLAMA_SWAP_BASE_URL=http://llama-swap:8080
+      - REFRESH_INTERVAL=1
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request, sys; urllib.request.urlopen('http://127.0.0.1:8081/health', timeout=1); sys.exit(0)"]
       interval: 10s

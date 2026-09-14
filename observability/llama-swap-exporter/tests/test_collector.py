@@ -5,14 +5,21 @@ import requests
 from conftest import (
     ACTIVITY_URL,
     BASE_URL,
+    PYTHON_SERVER_METRICS_TEXT,
     RUNNING_URL,
     SAMPLE_METRICS_TEXT,
     make_activity_item,
 )
-from prometheus_client import generate_latest
+from prometheus_client import (
+    CollectorRegistry,
+    GCCollector,
+    PlatformCollector,
+    ProcessCollector,
+    generate_latest,
+)
 from prometheus_client.parser import text_string_to_metric_families
 
-from app import GAUGE_SPECS
+from app import BUILTIN_FAMILY_NAMES, GAUGE_SPECS
 
 LLAMASWAP_GAUGE_NAMES = set(GAUGE_SPECS)
 
@@ -21,7 +28,13 @@ def _family_names(families) -> set[str]:
     return {family.name for family in families}
 
 
-def _register_scrape(responses, models=("m1",), activity_items=None, status=200):
+def _register_scrape(
+    responses,
+    models=("m1",),
+    activity_items=None,
+    status=200,
+    metrics_text=SAMPLE_METRICS_TEXT,
+):
     if activity_items is None:
         activity_items = [make_activity_item(model) for model in models]
     responses.add(
@@ -34,7 +47,7 @@ def _register_scrape(responses, models=("m1",), activity_items=None, status=200)
         responses.add(
             responses.GET,
             f"{BASE_URL}/upstream/{model}/metrics",
-            body=SAMPLE_METRICS_TEXT,
+            body=metrics_text,
         )
     responses.add(
         responses.GET,
@@ -242,3 +255,38 @@ def test_collect_tolerates_invalid_activity_json(collector, clock, responses):
     families = collector.collect()
 
     assert _family_names(families) == LLAMASWAP_GAUGE_NAMES
+
+
+def test_parse_model_metrics_skips_builtin_families(collector):
+    families = collector.parse_model_metrics("m1", PYTHON_SERVER_METRICS_TEXT)
+
+    names = _family_names(families.values())
+    assert not (names & BUILTIN_FAMILY_NAMES)
+    assert names == {
+        "llamacpp_prompt_tokens",
+        "llamacpp_requests_processing",
+        "llamacpp_tokens_predicted",
+    }
+
+
+def test_register_does_not_clash_with_builtin_collectors(collector, responses):
+    """Regression: registering next to the default registry's builtins must not
+    raise DuplicateTimeseries when a model server is a Python process."""
+    registry = CollectorRegistry(auto_describe=True)
+    GCCollector(registry=registry)
+    PlatformCollector(registry=registry)
+    ProcessCollector(registry=registry)
+    _register_scrape(responses, models=("m1",), metrics_text=PYTHON_SERVER_METRICS_TEXT)
+
+    registry.register(collector)
+    output = generate_latest(registry)
+
+    assert b'llamacpp_prompt_tokens_total{model="m1"} 1234.0' in output
+    # The exporter's own builtin metrics survive; the model server's copies do
+    # not leak in with a model label.
+    assert b"python_info{" in output
+    assert not any(
+        line.startswith(("python_gc_", "process_", "python_info"))
+        and '{model="' in line
+        for line in output.decode().splitlines()
+    )
