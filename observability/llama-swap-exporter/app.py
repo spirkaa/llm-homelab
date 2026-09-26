@@ -263,17 +263,6 @@ class LlamaSwapApi:
             page += 1
         return all_items
 
-    def get_llama_swap_metrics(self) -> list[dict]:
-        """Get latest metrics per model."""
-        latest: dict[str, dict] = {}
-        for item in self.get_llama_swap_activity():
-            if not (isinstance(item, dict) and "model" in item and "timestamp" in item):
-                continue
-            model = item["model"]
-            if model not in latest or item["timestamp"] > latest[model]["timestamp"]:
-                latest[model] = item
-        return list(latest.values())
-
 
 class LlamaSwapCollector(Collector):
     """Prometheus collector for llama-swap."""

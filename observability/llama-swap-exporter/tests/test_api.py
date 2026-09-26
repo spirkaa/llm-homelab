@@ -180,33 +180,6 @@ def test_get_llama_swap_activity_terminates_on_inconsistent_total_pages(
     assert state["calls"] == 100
 
 
-def test_get_llama_swap_metrics_keeps_latest_per_model(client, responses):
-    # m1 ts=2 after m1 ts=3: the older duplicate must not win
-    items = [
-        make_activity_item("m1", timestamp=1),
-        make_activity_item("m1", timestamp=3),
-        make_activity_item("m2", timestamp=2),
-        make_activity_item("m1", timestamp=2),
-    ]
-    responses.add(responses.GET, ACTIVITY_URL, json={"data": items, "total_pages": 1})
-
-    result = client.get_llama_swap_metrics()
-    assert {item["model"] for item in result} == {"m1", "m2"}
-    assert {item["model"]: item["timestamp"] for item in result} == {"m1": 3, "m2": 2}
-
-
-def test_get_llama_swap_metrics_malformed_entries(client, responses):
-    items = [
-        make_activity_item("m1", timestamp=1),
-        {"timestamp": 2},  # missing "model"
-        {"model": "m2"},  # missing "timestamp"
-    ]
-    responses.add(responses.GET, ACTIVITY_URL, json={"data": items, "total_pages": 1})
-
-    result = client.get_llama_swap_metrics()
-    assert {item["model"] for item in result} == {"m1"}
-
-
 NETWORK_ERRORS = [
     pytest.param(
         requests.exceptions.ConnectionError("connection refused"), id="connection-error"
