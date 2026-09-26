@@ -1,4 +1,4 @@
-"""Tests for the HTTP handler, signal handler, and main()."""
+"""Tests for the HTTP handler."""
 
 import functools
 import signal

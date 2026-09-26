@@ -1,6 +1,7 @@
 """Prometheus exporter for llama-swap."""
 
 import logging
+import math
 import os
 import signal
 import time
@@ -24,6 +25,8 @@ from prometheus_client.core import (
 from prometheus_client.parser import text_string_to_metric_families
 from prometheus_client.registry import Collector
 
+load_dotenv()
+
 logger = logging.getLogger(__name__)
 logging.basicConfig(
     format="%(asctime)s %(levelname)-8s %(message)s",
@@ -31,8 +34,6 @@ logging.basicConfig(
     handlers=[logging.StreamHandler()],
 )
 logging.getLogger("urllib3").setLevel(logging.WARNING)
-
-load_dotenv()
 
 LLAMA_SWAP_BASE_URL = os.getenv("LLAMA_SWAP_BASE_URL", "http://localhost:8080")
 REFRESH_INTERVAL = int(os.getenv("REFRESH_INTERVAL", "15"))
@@ -112,6 +113,65 @@ GAUGE_SPECS: dict[str, tuple[str, bool, str]] = {
         "draft_acc_tokens",
         True,
         "Number of draft accepted tokens.",
+    ),
+}
+
+# Quantiles computed per metric over the recent activity window.
+QUANTILES = (0.5, 0.9, 0.95, 0.99)
+
+# Gauge carrying the number of entries in the recent activity window per model:
+# tells dashboards how many samples the quantiles are computed from.
+WINDOW_SAMPLES_METRIC = "llamaswap_model_request_samples"
+
+
+def _quantile(sorted_values: list[float], q: float) -> float:
+    """Quantile of a pre-sorted sample, using linear interpolation."""
+    if len(sorted_values) == 1:
+        return sorted_values[0]
+    rank = q * (len(sorted_values) - 1)
+    lo = math.floor(rank)
+    hi = min(lo + 1, len(sorted_values) - 1)
+    frac = rank - lo
+    return sorted_values[lo] * (1.0 - frac) + sorted_values[hi] * frac
+
+
+# metric name -> (field, field lives in the "tokens" sub-object, documentation)
+#
+# These reuse the per-request fields of GAUGE_SPECS but under distinct names: a
+# metric name can carry only one type, so a gauge and a distribution of the
+# same field cannot share a name. The "request_" discriminator marks these as
+# the distribution over the recent activity window, as opposed to the
+# "llamaswap_model_*" gauges that carry the most recent value only.
+#
+# Exposed as gauges labeled (model, quantile): the activity feed is a bounded
+# rolling log, so the quantiles are recomputed from scratch on every scrape.
+# Gauges never reset when entries leave the window, so they can be used in
+# dashboards and alerts directly.
+QUANTILE_SPECS: dict[str, tuple[str, bool, str]] = {
+    "llamaswap_model_request_duration_ms": (
+        "duration_ms",
+        False,
+        "Quantiles of request duration in milliseconds over recent activity.",
+    ),
+    "llamaswap_model_request_input_tokens": (
+        "input_tokens",
+        True,
+        "Quantiles of prompt tokens processed per request over recent activity.",
+    ),
+    "llamaswap_model_request_output_tokens": (
+        "output_tokens",
+        True,
+        "Quantiles of generated tokens per request over recent activity.",
+    ),
+    "llamaswap_model_request_prompt_per_second": (
+        "prompt_per_second",
+        True,
+        "Quantiles of prompt tokens per second per request over recent activity.",
+    ),
+    "llamaswap_model_request_tokens_per_second": (
+        "tokens_per_second",
+        True,
+        "Quantiles of generated tokens per second per request over recent activity.",
     ),
 }
 
@@ -225,6 +285,18 @@ class LlamaSwapCollector(Collector):
         self.last_scrape = 0
         self.cached_metrics = []
 
+    @staticmethod
+    def _latest_per_model(items: list[dict]) -> list[dict]:
+        """Reduce activity entries to the most recent record per model."""
+        latest: dict[str, dict] = {}
+        for item in items:
+            if not (isinstance(item, dict) and "model" in item and "timestamp" in item):
+                continue
+            model = item["model"]
+            if model not in latest or item["timestamp"] > latest[model]["timestamp"]:
+                latest[model] = item
+        return list(latest.values())
+
     def json_to_gauges(self, data: list[dict]) -> list[GaugeMetricFamily]:
         """Convert a list of JSON objects into GaugeMetricFamily objects."""
         families = {
@@ -243,6 +315,76 @@ class LlamaSwapCollector(Collector):
                 source = tokens if in_tokens else entry
                 families[name].add_metric([model_name], float(source.get(field) or 0))
         return list(families.values())
+
+    @staticmethod
+    def _collect_field_values(
+        items: list[dict], field: str, *, in_tokens: bool
+    ) -> list[float]:
+        """Numeric values of one field across activity entries, non-numeric skipped."""
+        values: list[float] = []
+        for entry in items:
+            tokens = entry.get("tokens")
+            source = tokens if in_tokens else entry
+            if not isinstance(source, dict):
+                continue
+            value = source.get(field)
+            if isinstance(value, (int, float)) and not isinstance(value, bool):
+                values.append(float(value))
+        return values
+
+    @staticmethod
+    def _items_by_model(items: list[dict]) -> dict[str, list[dict]]:
+        """Group activity entries by model, tolerating malformed entries."""
+        by_model: dict[str, list[dict]] = {}
+        for item in items:
+            model = item.get("model") if isinstance(item, dict) else None
+            if model:
+                by_model.setdefault(model, []).append(item)
+        return by_model
+
+    def json_to_quantiles(self, items: list[dict]) -> list[Metric]:
+        """Build quantile gauge families per model over the whole activity window.
+
+        Unlike :meth:`json_to_gauges`, which keeps only the latest record per
+        model, this considers every activity entry so the quantiles reflect
+        the distribution of per-request values. The activity feed is a bounded
+        rolling log, and the quantiles are recomputed from scratch on each
+        scrape and exposed as gauges (label ``quantile``), which never reset
+        when entries leave the window.
+        """
+        by_model = self._items_by_model(items)
+        if not by_model:
+            return []
+
+        values_by_name: dict[str, dict[str, list[float]]] = {}
+        for model_name, model_items in by_model.items():
+            for name, (field, in_tokens, _) in QUANTILE_SPECS.items():
+                values = self._collect_field_values(
+                    model_items, field, in_tokens=in_tokens
+                )
+                if values:
+                    values_by_name.setdefault(name, {})[model_name] = values
+
+        families: list[Metric] = []
+        for name, per_model in values_by_name.items():
+            family = GaugeMetricFamily(
+                name, QUANTILE_SPECS[name][2], labels=["model", "quantile"]
+            )
+            for model_name, values in per_model.items():
+                values.sort()
+                for q in QUANTILES:
+                    family.add_metric([model_name, str(q)], _quantile(values, q))
+            families.append(family)
+
+        samples = GaugeMetricFamily(
+            WINDOW_SAMPLES_METRIC,
+            "Number of entries in the recent activity window, per model.",
+            labels=["model"],
+        )
+        for model_name, model_items in by_model.items():
+            samples.add_metric([model_name], float(len(model_items)))
+        families.append(samples)
+        return families
 
     def _forward_family(self, name: str, family: Metric, model_name: str) -> Metric:
         """Re-emit a multi-sample-kind family (histogram, summary, ...) verbatim.
@@ -332,9 +474,11 @@ class LlamaSwapCollector(Collector):
                 result = self.parse_model_metrics(model_name, model_metrics)
                 new_metrics.extend(result.values())
 
-            swap_metrics = self.client.get_llama_swap_metrics()
-            swap_metrics_families = self.json_to_gauges(swap_metrics)
-            new_metrics.extend(swap_metrics_families)
+            activity_items = self.client.get_llama_swap_activity()
+            new_metrics.extend(
+                self.json_to_gauges(self._latest_per_model(activity_items))
+            )
+            new_metrics.extend(self.json_to_quantiles(activity_items))
 
             # Update cache on successful scrape
             self.cached_metrics = new_metrics

@@ -2,7 +2,7 @@
 
 Экспортер получает список запущенных моделей в llama-swap, обращается к ним через `/upstream/{model_name}/metrics`, заменяет префикс `llamacpp:` на `llamacpp_` и добавляет лейбл с именем модели. Предполагается, что модели запускаются с помощью llama.cpp.
 
-Также экспортер получает json метрики llama-swap, которые отображаются на странице Activity, через `/api/metrics/activity`, оставляет последний элемент для каждой модели, преобразует в формат Prometheus.
+Также экспортер получает json метрики llama-swap, которые отображаются на странице Activity, через `/api/metrics/activity`. Для каждого поля он либо сохраняет последнее значение (gauge), либо вычисляет квантили (p50/p90/p95/p99) по всем записям, т.е. по скользящему окну недавних запросов. Квантили публикуются как gauge с лейблом `quantile`: значения пересчитываются при каждом обновлении. Размер окна на модель доступен в `llamaswap_model_request_samples`.
 
 ## Эндпоинты
 
@@ -35,3 +35,9 @@
 22. llamaswap_model_duration_ms
 23. llamaswap_model_draft_tokens
 24. llamaswap_model_draft_acc_tokens
+25. llamaswap_model_request_duration_ms
+26. llamaswap_model_request_input_tokens
+27. llamaswap_model_request_output_tokens
+28. llamaswap_model_request_prompt_per_second
+29. llamaswap_model_request_tokens_per_second
+30. llamaswap_model_request_samples
