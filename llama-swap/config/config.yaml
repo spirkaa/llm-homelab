@@ -3,7 +3,7 @@
 # https://github.com/mostlygeek/llama-swap/wiki/Configuration
 # https://github.com/ggml-org/llama.cpp/blob/master/tools/server/README.md
 
-healthCheckTimeout: 300
+healthCheckTimeout: 600
 logLevel: info
 sendLoadingState: true
 includeAliasesInList: true
@@ -16,6 +16,7 @@ macros:
       --init --rm
       --name model-${MODEL_ID}
       --gpus all --ipc=host --ulimit memlock=-1
+      -e GGML_CUDA_P2P=1
       -v /mnt/data0/llm/models:/app/models
       -v /home/spirkaa/projects/llm-homelab/llama-swap/config:/app/config
       -p ${PORT}:9931
@@ -34,6 +35,7 @@ macros:
       --init --rm
       --name model-${MODEL_ID}
       --gpus all --ipc=host --ulimit memlock=-1
+      -e GGML_CUDA_P2P=1
       -v /mnt/data0/llm/models:/app/models
       -v /home/spirkaa/projects/llm-homelab/llama-swap/config:/app/config
       -p ${PORT}:8080
@@ -192,53 +194,6 @@ models:
           chat_template_kwargs:
             reasoning_effort: high
 
-  qwen3-next-80b-a3b-instruct:
-    # https://unsloth.ai/docs/models/tutorials/qwen3-next
-    proxy: ${macros-docker-proxy}
-    cmdStop: ${macros-docker-stop}
-    cmd: >
-      ${macros-docker-llama}
-      --model /app/models/unsloth/Qwen3-Next-80B-A3B-Instruct-GGUF/Qwen3-Next-80B-A3B-Instruct-UD-Q4_K_XL.gguf
-      --port 9931
-      --cors-origins localhost
-      --metrics
-      --verbosity 4
-      --load-mode mlock
-      --n-gpu-layers 99
-      --n-cpu-moe 27
-      --fit-ctx 65536
-      --jinja
-    filters:
-      setParams:
-        temperature: 0.7
-        min_p: 0.0
-        top_p: 0.8
-        top_k: 20
-        presence_penalty: 1.0
-
-  qwen3-coder-next-80b-a3b:
-    # https://unsloth.ai/docs/models/qwen3-coder-next
-    proxy: ${macros-docker-proxy}
-    cmdStop: ${macros-docker-stop}
-    cmd: >
-      ${macros-docker-llama}
-      --model /app/models/unsloth/Qwen3-Coder-Next-GGUF/Qwen3-Coder-Next-UD-Q4_K_XL.gguf
-      --port 9931
-      --cors-origins localhost
-      --metrics
-      --verbosity 4
-      --load-mode mlock
-      --n-gpu-layers 99
-      --n-cpu-moe 30
-      --fit-ctx 65536
-      --jinja
-    filters:
-      setParams:
-        temperature: 1.0
-        min_p: 0.01
-        top_p: 0.95
-        top_k: 40
-
   qwen3.5-0.8b:
     # https://unsloth.ai/docs/models/qwen3.5
     proxy: ${macros-docker-proxy}
@@ -300,90 +255,6 @@ models:
         "${MODEL_ID}:instruct-reasoning":
           chat_template_kwargs:
             enable_thinking: false
-
-  qwen3.6-27b:
-    # https://unsloth.ai/docs/models/qwen3.6
-    proxy: ${macros-docker-proxy}
-    cmdStop: ${macros-docker-stop}
-    cmd: >
-      ${macros-docker-llama}
-      --model /app/models/unsloth/Qwen3.6-27B-MTP-GGUF/Qwen3.6-27B-Q4_K_M.gguf
-      --mmproj /app/models/unsloth/Qwen3.6-27B-MTP-GGUF/mmproj-F16.gguf
-      --port 9931
-      --cors-origins localhost
-      --metrics
-      --verbosity 4
-      --load-mode mlock
-      --fit-target 1024
-      --ctx-size 120000
-      --parallel 1
-      --cache-type-k q8_0
-      --cache-type-v q8_0
-      --spec-default
-      --spec-type draft-mtp
-      --spec-draft-n-max 1
-      --spec-draft-p-min 0.75
-      --jinja
-      --image-min-tokens 1024
-      --image-max-tokens 1024
-    filters:
-      setParams:
-        temperature: 1.0
-        min_p: 0.0
-        top_p: 0.95
-        top_k: 20
-        presence_penalty: 1.5
-        chat_template_kwargs:
-          preserve_thinking: true
-      setParamsByID:
-        "${MODEL_ID}:coding":
-          temperature: 0.6
-          presence_penalty: 0.0
-        "${MODEL_ID}:instruct":
-          temperature: 0.7
-          top_p: 0.8
-          chat_template_kwargs:
-            enable_thinking: false
-            preserve_thinking: false
-        "${MODEL_ID}:instruct-reasoning":
-          chat_template_kwargs:
-            enable_thinking: false
-            preserve_thinking: false
-
-  qwen3.6-27b-ik:
-    # https://unsloth.ai/docs/models/qwen3.6
-    proxy: ${macros-docker-proxy}
-    cmdStop: ${macros-docker-stop}
-    cmd: >
-      ${macros-docker-ik-llama}
-      --model /app/models/ubergarm/Qwen3.6-27B-GGUF/Qwen3.6-27B-MTP-IQ4_KS.gguf
-      --metrics
-      -ngl 99
-      --ctx-size 130000
-      -b 4096
-      -ub 1024
-      -np 1
-      -ctk q8_0
-      -ctv q8_0
-      -khad
-      -vhad
-      -ngld 99
-      --spec-type ngram-mod:n_max=4,n_min=2,ngram_size_n=16
-      --spec-type mtp:n_max=2,p_min=0.0
-      --recurrent-ckpt-mode auto
-      --merge-qkv
-      -fa on
-      --jinja
-      --parallel-tool-calls
-    filters:
-      setParams:
-        temperature: 0.6
-        min_p: 0.0
-        top_p: 0.95
-        top_k: 20
-        presence_penalty: 0.0
-        chat_template_kwargs:
-          preserve_thinking: true
 
   qwen3.6-35b-a3b:
     # https://unsloth.ai/docs/models/qwen3.6
@@ -518,6 +389,214 @@ models:
         min_p: 0.0
         top_p: 0.95
         top_k: 20
+        thinking_budget_tokens: 4096
+        reasoning_budget_message: "... thinking budget exceeded, let's answer now."
+        chat_template_kwargs:
+          preserve_thinking: true
+          reasoning_effort: medium
+      setParamsByID:
+        "${MODEL_ID}:xhigh":
+          thinking_budget_tokens: 16384
+          chat_template_kwargs:
+            reasoning_effort: xhigh
+        "${MODEL_ID}:low":
+          thinking_budget_tokens: 1024
+          chat_template_kwargs:
+            reasoning_effort: low
+        "${MODEL_ID}:instruct":
+          temperature: 0.7
+          top_p: 0.8
+          presence_penalty: 1.5
+          chat_template_kwargs:
+            enable_thinking: false
+            preserve_thinking: false
+
+  qwen3.8-27b-single:
+    # https://github.com/syv-ai/HyperQwen
+    proxy: ${macros-docker-proxy}
+    cmdStop: ${macros-docker-stop}
+    cmd: >
+      docker run
+        --init --rm
+        --name model-${MODEL_ID}
+        --gpus all --ipc=host
+        -e PORT=${PORT}
+        -e HOME=/cache
+        -e REQ_METRICS=1
+        -e VISION=1
+        -e PREFIX_CACHE=1
+        -e SPEC=mtp
+        -e CTX=long
+        -e INT8_ACT=int8
+        -e PREFILL_ATTN=int8
+        -e EXTRA_ARGS="--limit-mm-per-prompt {\"image\":{\"count\":5}} --max-num-batched-tokens 4096"
+        -v /mnt/data0/llm/models/vllm:/app/models
+        -v qwen-cache:/cache
+        -p ${PORT}:${PORT}
+        ghcr.io/syv-ai/hyperqwen:latest
+        single
+    useModelName: qwen3.8-27b
+    capabilities:
+      in:
+        - text
+        - image
+      out:
+        - text
+      tools: true
+      context: 150000
+    filters:
+      setParams:
+        temperature: 1.0
+        min_p: 0.0
+        top_p: 0.95
+        top_k: 20
+        chat_template_kwargs:
+          preserve_thinking: true
+          reasoning_effort: medium
+      setParamsByID:
+        "${MODEL_ID}:xhigh":
+          chat_template_kwargs:
+            reasoning_effort: xhigh
+        "${MODEL_ID}:low":
+          chat_template_kwargs:
+            reasoning_effort: low
+        "${MODEL_ID}:instruct":
+          temperature: 0.7
+          top_p: 0.8
+          presence_penalty: 1.5
+          chat_template_kwargs:
+            enable_thinking: false
+            preserve_thinking: false
+
+  qwen3.8-27b-dual:
+    # https://github.com/noonghunna/club-3090
+    proxy: http://host.docker.internal:8110
+    cmdStop: >
+      docker compose
+        --project-name club-3090
+        -f /home/spirkaa/projects/llm-homelab/club-3090/models/qwen3.8-27b/vllm/compose/dual/fp8/dflash2.yml
+        down
+    cmd: >
+      docker compose
+        --project-name club-3090
+        -f /home/spirkaa/projects/llm-homelab/club-3090/models/qwen3.8-27b/vllm/compose/dual/fp8/dflash2.yml
+        up
+        --no-log-prefix
+    useModelName: qwen3.8-27b
+    capabilities:
+      in:
+        - text
+        - image
+      out:
+        - text
+      tools: true
+      context: 262144
+    filters:
+      setParams:
+        temperature: 1.0
+        min_p: 0.0
+        top_p: 0.95
+        top_k: 20
+        chat_template_kwargs:
+          preserve_thinking: true
+          reasoning_effort: medium
+      setParamsByID:
+        "${MODEL_ID}:xhigh":
+          chat_template_kwargs:
+            reasoning_effort: xhigh
+        "${MODEL_ID}:low":
+          chat_template_kwargs:
+            reasoning_effort: low
+        "${MODEL_ID}:instruct":
+          temperature: 0.7
+          top_p: 0.8
+          presence_penalty: 1.5
+          chat_template_kwargs:
+            enable_thinking: false
+            preserve_thinking: false
+
+  qwen3.8-27b-dual-int4:
+    # https://github.com/noonghunna/club-3090
+    proxy: http://host.docker.internal:8101
+    cmdStop: >
+      docker compose
+        --project-name club-3090
+        -f /home/spirkaa/projects/llm-homelab/club-3090/models/qwen3.8-27b/vllm/compose/dual/autoround-int4/dflash2.yml
+        down
+    cmd: >
+      docker compose
+        --project-name club-3090
+        -f /home/spirkaa/projects/llm-homelab/club-3090/models/qwen3.8-27b/vllm/compose/dual/autoround-int4/dflash2.yml
+        up
+        --no-log-prefix
+    useModelName: qwen3.8-27b
+    capabilities:
+      in:
+        - text
+        - image
+      out:
+        - text
+      tools: true
+      context: 262144
+    filters:
+      setParams:
+        temperature: 1.0
+        min_p: 0.0
+        top_p: 0.95
+        top_k: 20
+        chat_template_kwargs:
+          preserve_thinking: true
+          reasoning_effort: medium
+      setParamsByID:
+        "${MODEL_ID}:xhigh":
+          chat_template_kwargs:
+            reasoning_effort: xhigh
+        "${MODEL_ID}:low":
+          chat_template_kwargs:
+            reasoning_effort: low
+        "${MODEL_ID}:instruct":
+          temperature: 0.7
+          top_p: 0.8
+          presence_penalty: 1.5
+          chat_template_kwargs:
+            enable_thinking: false
+            preserve_thinking: false
+
+  qwen3.8-flash-next:
+    # https://unsloth.ai/docs/models/qwen3.8-next
+    proxy: ${macros-docker-proxy}
+    cmdStop: ${macros-docker-stop}
+    cmd: >
+      ${macros-docker-llama}
+      --model /app/models/unsloth/Qwen3.8-Flash-Next-GGUF/Qwen3.8-Flash-Next-UD-IQ4_XS-00001-of-00003.gguf
+      --mmproj /app/models/unsloth/Qwen3.8-Flash-Next-GGUF/mmproj-Qwen3.8-Flash-Next-Q8_0.gguf
+      --port 9931
+      --cors-origins localhost
+      --metrics
+      --verbosity 4
+      --load-mode none
+      --lazy-mode on
+      --ctx-size 131072
+      --batch-size 2048
+      --ubatch-size 2048
+      --parallel 1
+      --cache-type-k q8_0
+      --cache-type-v q8_0
+    capabilities:
+      in:
+        - text
+        - image
+      out:
+        - text
+      tools: true
+      context: 131072
+    filters:
+      setParams:
+        temperature: 1.0
+        min_p: 0.0
+        top_p: 0.95
+        top_k: 20
+        presence_penalty: 0.0
         thinking_budget_tokens: 4096
         reasoning_budget_message: "... thinking budget exceeded, let's answer now."
         chat_template_kwargs:

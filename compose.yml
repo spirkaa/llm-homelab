@@ -9,6 +9,8 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - ./llama-swap/config:/app/config
+      - ./club-3090:/home/spirkaa/projects/llm-homelab/club-3090
+      - /mnt/data0/llm/models:/mnt/data0/llm/models
     extra_hosts:
       - host.docker.internal:host-gateway
     runtime: nvidia

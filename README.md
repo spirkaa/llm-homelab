@@ -5,13 +5,17 @@
 - [llama-swap](https://github.com/mostlygeek/llama-swap)
 - [llama.cpp](https://github.com/ggml-org/llama.cpp)
 - [ik_llama.cpp](https://github.com/ikawrakow/ik_llama.cpp)
+- [club-3090](https://github.com/noonghunna/club-3090)
+- [HyperQwen](https://github.com/syv-ai/HyperQwen)
 - [open-webui](https://github.com/open-webui/open-webui)
 
 ## Команды
 
 ### Ограничение мощности GPU
 
-`nano /etc/systemd/system/nvidia-powerlimit.service`
+```shell
+sudo nano /etc/systemd/system/nvidia-powerlimit.service
+```
 
 ```ini
 [Unit]
@@ -27,7 +31,34 @@ RemainAfterExit=yes
 WantedBy=multi-user.target
 ```
 
-`sudo systemctl enable --now nvidia-powerlimit`
+```shell
+sudo systemctl daemon-reload
+sudo systemctl enable --now nvidia-powerlimit
+```
+
+### Настройка RGB
+
+```shell
+sudo nano /etc/systemd/system/openrgb.service
+```
+
+```ini
+Description=OpenRGB Profile
+After=multi-user.target
+
+[Service]
+Type=simple
+User=root
+ExecStart=/usr/bin/openrgb --server --profile 1.orp
+
+[Install]
+WantedBy=multi-user.target
+```
+
+```shell
+sudo systemctl daemon-reload
+sudo systemctl enable --now openrgb.service
+```
 
 ### Загрузка-обновление-сборка образов и запуск всех контейнеров
 
@@ -62,6 +93,7 @@ WantedBy=multi-user.target
 ## Железо
 
 - MSI GeForce RTX 3090 Gaming X Trio 24G
+- Palit GeForce RTX 3090 GamingPro 24G
 - AMD Ryzen 7 3800X
 - GIGABYTE X570 AORUS PRO
 - 4x16 GB DDR4-3200 G.SKILL F4-3200C16S-16GVK

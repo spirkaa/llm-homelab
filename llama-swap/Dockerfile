@@ -4,6 +4,7 @@ FROM docker:29-cli AS docker-cli
 FROM ghcr.io/mostlygeek/llama-swap:cpu
 
 COPY --from=docker-cli /usr/local/bin/docker /usr/local/bin/docker
+COPY --from=docker-cli /usr/local/libexec/docker/cli-plugins/docker-compose /usr/local/libexec/docker/cli-plugins/docker-compose
 
 HEALTHCHECK --interval=10s --timeout=1s CMD ["curl", "-f", "http://localhost:8080/health"]
 
