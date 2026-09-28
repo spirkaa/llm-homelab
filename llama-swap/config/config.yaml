@@ -150,8 +150,13 @@ models:
       --metrics
       --verbosity 4
       --load-mode mlock
-      --n-gpu-layers 99
-      --n-cpu-moe 26
+      --fit-target 256
+      --ctx-size 131072
+      --batch-size 2048
+      --ubatch-size 2048
+      --parallel 1
+      --cache-type-k q8_0
+      --cache-type-v q8_0
       --jinja
       --grammar-file /app/config/gpt-oss-vscode.gbnf
     filters:
@@ -231,10 +236,13 @@ models:
       --metrics
       --verbosity 4
       --load-mode mlock
-      --n-gpu-layers 99
-      --n-cpu-moe 34
       --fit-target 256
+      --fit-ctx 131072
+      --batch-size 2048
+      --ubatch-size 2048
       --parallel 1
+      --cache-type-k q8_0
+      --cache-type-v q8_0
       --jinja
     filters:
       setParams:
@@ -429,7 +437,7 @@ models:
         -e CTX=long
         -e INT8_ACT=int8
         -e PREFILL_ATTN=int8
-        -e EXTRA_ARGS="--limit-mm-per-prompt {\"image\":{\"count\":5}} --max-num-batched-tokens 4096"
+        -e EXTRA_ARGS="--limit-mm-per-prompt {\"image\":{\"count\":5}} --max-num-batched-tokens 4096 --disable-access-log-for-endpoints /metrics"
         -v /mnt/data0/llm/models/vllm:/app/models
         -v qwen-cache:/cache
         -p ${PORT}:${PORT}
@@ -473,12 +481,12 @@ models:
     proxy: http://host.docker.internal:8110
     cmdStop: >
       docker compose
-        --project-name club-3090
+        --project-name club-3090-1
         -f /home/spirkaa/projects/llm-homelab/club-3090/models/qwen3.8-27b/vllm/compose/dual/fp8/dflash2.yml
         down
     cmd: >
       docker compose
-        --project-name club-3090
+        --project-name club-3090-1
         -f /home/spirkaa/projects/llm-homelab/club-3090/models/qwen3.8-27b/vllm/compose/dual/fp8/dflash2.yml
         up
         --no-log-prefix
@@ -520,12 +528,12 @@ models:
     proxy: http://host.docker.internal:8101
     cmdStop: >
       docker compose
-        --project-name club-3090
+        --project-name club-3090-2
         -f /home/spirkaa/projects/llm-homelab/club-3090/models/qwen3.8-27b/vllm/compose/dual/autoround-int4/dflash2.yml
         down
     cmd: >
       docker compose
-        --project-name club-3090
+        --project-name club-3090-2
         -f /home/spirkaa/projects/llm-homelab/club-3090/models/qwen3.8-27b/vllm/compose/dual/autoround-int4/dflash2.yml
         up
         --no-log-prefix
@@ -709,10 +717,13 @@ models:
       --metrics
       --verbosity 4
       --load-mode mlock
-      --n-gpu-layers 99
-      --n-cpu-moe 68
       --fit-target 256
+      --fit-ctx 131072
+      --batch-size 2048
+      --ubatch-size 2048
       --parallel 1
+      --cache-type-k q8_0
+      --cache-type-v q8_0
       --jinja
     filters:
       setParams:
@@ -735,15 +746,13 @@ models:
       --metrics
       --verbosity 4
       --load-mode mlock
-      --n-gpu-layers 99
-      --n-cpu-moe 35
       --fit-target 256
+      --fit-ctx 131072
       --batch-size 2048
       --ubatch-size 2048
       --parallel 1
       --cache-type-k q8_0
       --cache-type-v q8_0
-      --spec-default
       --jinja
     filters:
       setParams:

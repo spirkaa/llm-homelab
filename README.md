@@ -7,7 +7,20 @@
 - [ik_llama.cpp](https://github.com/ikawrakow/ik_llama.cpp)
 - [club-3090](https://github.com/noonghunna/club-3090)
 - [HyperQwen](https://github.com/syv-ai/HyperQwen)
-- [open-webui](https://github.com/open-webui/open-webui)
+- [open-gpu-kernel-modules](https://github.com/aikitoria/open-gpu-kernel-modules)
+
+## Система
+
+- Fedora 44 (NVIDIA Driver 615, CUDA 13.4)
+- MSI GeForce RTX 3090 Gaming X Trio 24G - 280W Limit
+- Palit GeForce RTX 3090 GamingPro 24G (PCIe 4.0 x16 riser 60 cm) - 280W Limit
+- AMD Ryzen 7 3800X
+- GIGABYTE X570 AORUS PRO
+- 4x16 GB DDR4-3200 G.SKILL F4-3200C16S-16GVK
+- 1 TB Samsung SSD 980 PRO
+- 2 TB Samsung SSD 990 PRO
+- Fractal Design Define R6
+- Corsair RM850i
 
 ## Команды
 
@@ -89,15 +102,3 @@ sudo systemctl enable --now openrgb.service
     ```shell
     ./download_models.sh
     ```
-
-## Железо
-
-- MSI GeForce RTX 3090 Gaming X Trio 24G
-- Palit GeForce RTX 3090 GamingPro 24G
-- AMD Ryzen 7 3800X
-- GIGABYTE X570 AORUS PRO
-- 4x16 GB DDR4-3200 G.SKILL F4-3200C16S-16GVK
-- 1 TB Samsung SSD 980 PRO
-- 2 TB Samsung SSD 990 PRO
-- Fractal Design Define R6
-- Corsair RM850i
