@@ -353,10 +353,12 @@ models:
         "${MODEL_ID}:xhigh":
           thinking_budget_tokens: 16384
           chat_template_kwargs:
+            preserve_thinking: true
             reasoning_effort: xhigh
         "${MODEL_ID}:low":
           thinking_budget_tokens: 1024
           chat_template_kwargs:
+            preserve_thinking: true
             reasoning_effort: low
         "${MODEL_ID}:instruct":
           temperature: 0.7
@@ -406,10 +408,12 @@ models:
         "${MODEL_ID}:xhigh":
           thinking_budget_tokens: 16384
           chat_template_kwargs:
+            preserve_thinking: true
             reasoning_effort: xhigh
         "${MODEL_ID}:low":
           thinking_budget_tokens: 1024
           chat_template_kwargs:
+            preserve_thinking: true
             reasoning_effort: low
         "${MODEL_ID}:instruct":
           temperature: 0.7
@@ -464,9 +468,11 @@ models:
       setParamsByID:
         "${MODEL_ID}:xhigh":
           chat_template_kwargs:
+            preserve_thinking: true
             reasoning_effort: xhigh
         "${MODEL_ID}:low":
           chat_template_kwargs:
+            preserve_thinking: true
             reasoning_effort: low
         "${MODEL_ID}:instruct":
           temperature: 0.7
@@ -511,9 +517,11 @@ models:
       setParamsByID:
         "${MODEL_ID}:xhigh":
           chat_template_kwargs:
+            preserve_thinking: true
             reasoning_effort: xhigh
         "${MODEL_ID}:low":
           chat_template_kwargs:
+            preserve_thinking: true
             reasoning_effort: low
         "${MODEL_ID}:instruct":
           temperature: 0.7
@@ -558,9 +566,11 @@ models:
       setParamsByID:
         "${MODEL_ID}:xhigh":
           chat_template_kwargs:
+            preserve_thinking: true
             reasoning_effort: xhigh
         "${MODEL_ID}:low":
           chat_template_kwargs:
+            preserve_thinking: true
             reasoning_effort: low
         "${MODEL_ID}:instruct":
           temperature: 0.7
@@ -614,10 +624,68 @@ models:
         "${MODEL_ID}:xhigh":
           thinking_budget_tokens: 16384
           chat_template_kwargs:
+            preserve_thinking: true
             reasoning_effort: xhigh
         "${MODEL_ID}:low":
           thinking_budget_tokens: 1024
           chat_template_kwargs:
+            preserve_thinking: true
+            reasoning_effort: low
+        "${MODEL_ID}:instruct":
+          temperature: 0.7
+          top_p: 0.8
+          presence_penalty: 1.5
+          chat_template_kwargs:
+            enable_thinking: false
+            preserve_thinking: false
+
+  qwen3.8-flash-next-strata:
+    # https://github.com/Niko1221/Strata
+    proxy: ${macros-docker-proxy}
+    cmdStop: ${macros-docker-stop}
+    cmd: >
+      docker run
+        --init --rm
+        --name model-${MODEL_ID}
+        --gpus all --ipc=host --ulimit memlock=-1
+        -e GPUS=all
+        -e MODEL=IQ3_S
+        -e VISION=yes
+        -e KV=int8
+        -e CONTEXT=262144
+        -v /home/spirkaa/projects/llm-homelab/Strata-data:/data
+        -p ${PORT}:8080
+        git.devmem.ru/projects/llm-homelab/strata:latest
+    capabilities:
+      in:
+        - text
+        - image
+      out:
+        - text
+      tools: true
+      context: 262144
+    filters:
+      setParams:
+        temperature: 1.0
+        min_p: 0.0
+        top_p: 0.95
+        top_k: 20
+        presence_penalty: 0.0
+        thinking_budget_tokens: 4096
+        reasoning_budget_message: "... thinking budget exceeded, let's answer now."
+        chat_template_kwargs:
+          preserve_thinking: true
+          reasoning_effort: medium
+      setParamsByID:
+        "${MODEL_ID}:xhigh":
+          thinking_budget_tokens: 16384
+          chat_template_kwargs:
+            preserve_thinking: true
+            reasoning_effort: xhigh
+        "${MODEL_ID}:low":
+          thinking_budget_tokens: 1024
+          chat_template_kwargs:
+            preserve_thinking: true
             reasoning_effort: low
         "${MODEL_ID}:instruct":
           temperature: 0.7

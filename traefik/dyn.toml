@@ -2,6 +2,26 @@
   certFile = "/etc/traefik/certs/cert.crt"
   keyFile  = "/etc/traefik/certs/cert.key"
 
+[http.routers.cockpit]
+  rule = "Host(`cockpit.ai.devmem.ru`)"
+  entrypoints = ["websecure"]
+  tls = true
+  service = "cockpit"
+
+[http.services.cockpit.loadBalancer]
+  [[http.services.cockpit.loadBalancer.servers]]
+    url = "https://192.168.20.4:9090"
+
+[http.routers.hermes]
+  rule = "Host(`hermes.ai.devmem.ru`)"
+  entrypoints = ["websecure"]
+  tls = true
+  service = "hermes"
+
+[http.services.hermes.loadBalancer]
+  [[http.services.hermes.loadBalancer.servers]]
+    url = "http://192.168.20.105:9119"
+
 [tls.stores]
   [tls.stores.default]
     [tls.stores.default.defaultCertificate]
