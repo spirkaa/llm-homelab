@@ -653,6 +653,7 @@ models:
         -e VISION=yes
         -e KV=int8
         -e CONTEXT=262144
+        -e STRATA_ALLOWED_HOSTS=llama-swap:8080,llama-swap.ai.devmem.ru,chat.ai.devmem.ru
         -v /home/spirkaa/projects/llm-homelab/Strata-data:/data
         -p ${PORT}:8080
         git.devmem.ru/projects/llm-homelab/strata:latest
