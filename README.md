@@ -7,6 +7,7 @@
 - [club-3090](https://github.com/noonghunna/club-3090)
 - [HyperQwen](https://github.com/syv-ai/HyperQwen)
 - [open-gpu-kernel-modules](https://github.com/aikitoria/open-gpu-kernel-modules)
+- [gpu-unlock](https://github.com/Zagitta/gpu-unlock)
 
 ## Система
 
