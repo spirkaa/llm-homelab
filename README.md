@@ -4,7 +4,6 @@
 
 - [llama-swap](https://github.com/mostlygeek/llama-swap)
 - [llama.cpp](https://github.com/ggml-org/llama.cpp)
-- [ik_llama.cpp](https://github.com/ikawrakow/ik_llama.cpp)
 - [club-3090](https://github.com/noonghunna/club-3090)
 - [HyperQwen](https://github.com/syv-ai/HyperQwen)
 - [open-gpu-kernel-modules](https://github.com/aikitoria/open-gpu-kernel-modules)

@@ -30,16 +30,6 @@ macros:
       -v /home/spirkaa/projects/llm-homelab/llama-swap/config:/app/config
       -p ${PORT}:9931
       git.devmem.ru/projects/llm-homelab/llama.cpp:server-cuda
-  macros-docker-ik-llama: >
-    docker run
-      --init --rm
-      --name model-${MODEL_ID}
-      --gpus all --ipc=host --ulimit memlock=-1
-      -e GGML_CUDA_P2P=1
-      -v /mnt/data0/llm/models:/app/models
-      -v /home/spirkaa/projects/llm-homelab/llama-swap/config:/app/config
-      -p ${PORT}:8080
-      git.devmem.ru/projects/llm-homelab/ik_llama.cpp:server-cuda
 
 groups:
   forever:
@@ -50,27 +40,6 @@ groups:
       - qwen3.5-0.8b
 
 models:
-  gemma-3-27b-it-qat:
-    # https://unsloth.ai/docs/models/gemma-3-how-to-run-and-fine-tune
-    proxy: ${macros-docker-proxy}
-    cmdStop: ${macros-docker-stop}
-    cmd: >
-      ${macros-docker-llama}
-      --model /app/models/google/gemma-3-27b-it-qat-q4_0-gguf/gemma-3-27b-it-q4_0.gguf
-      --port 9931
-      --cors-origins localhost
-      --metrics
-      --verbosity 4
-      --load-mode mlock
-      --fit-target 2048
-      --mmproj /app/models/google/gemma-3-27b-it-qat-q4_0-gguf/mmproj-model-f16-27B.gguf
-    filters:
-      setParams:
-        temperature: 1.0
-        min_p: 0.0
-        top_p: 0.95
-        top_k: 64
-
   gemma-4-26b-a4b:
     # https://unsloth.ai/docs/models/gemma-4
     proxy: ${macros-docker-proxy}
@@ -313,116 +282,6 @@ models:
             enable_thinking: false
             preserve_thinking: false
 
-  qwen3.8-27b:
-    # https://unsloth.ai/docs/models/qwen3.8
-    proxy: ${macros-docker-proxy}
-    cmdStop: ${macros-docker-stop}
-    cmd: >
-      ${macros-docker-llama}
-      --model /app/models/unsloth/Qwen3.8-27B-GGUF/Qwen3.8-27B-UD-Q4_K_M.gguf
-      --mmproj /app/models/unsloth/Qwen3.8-27B-GGUF/mmproj-Q8_0.gguf
-      --port 9931
-      --cors-origins localhost
-      --metrics
-      --verbosity 4
-      --load-mode mlock
-      --fit-target 512
-      --ctx-size 130000
-      --parallel 1
-      --cache-type-k q8_0
-      --cache-type-v q8_0
-      --spec-default
-      --spec-type draft-mtp
-      --spec-draft-n-max 2
-      --spec-draft-p-min 0.75
-      --jinja
-      --image-min-tokens 1024
-      --image-max-tokens 1024
-    filters:
-      setParams:
-        temperature: 1.0
-        min_p: 0.0
-        top_p: 0.95
-        top_k: 20
-        thinking_budget_tokens: 4096
-        reasoning_budget_message: "... thinking budget exceeded, let's answer now."
-        chat_template_kwargs:
-          preserve_thinking: true
-          reasoning_effort: medium
-      setParamsByID:
-        "${MODEL_ID}:xhigh":
-          thinking_budget_tokens: 16384
-          chat_template_kwargs:
-            preserve_thinking: true
-            reasoning_effort: xhigh
-        "${MODEL_ID}:low":
-          thinking_budget_tokens: 1024
-          chat_template_kwargs:
-            preserve_thinking: true
-            reasoning_effort: low
-        "${MODEL_ID}:instruct":
-          temperature: 0.7
-          top_p: 0.8
-          presence_penalty: 1.5
-          chat_template_kwargs:
-            enable_thinking: false
-            preserve_thinking: false
-
-  qwen3.8-27b-ik:
-    # https://unsloth.ai/docs/models/qwen3.8
-    proxy: ${macros-docker-proxy}
-    cmdStop: ${macros-docker-stop}
-    cmd: >
-      ${macros-docker-ik-llama}
-      --model /app/models/ubergarm/Qwen3.8-27B-GGUF/Qwen3.8-27B-MTP-IQ4_KS.gguf
-      --metrics
-      -ngl 99
-      --ctx-size 130000
-      -b 4096
-      -ub 1024
-      -np 1
-      -ctk q8_0
-      -ctv q8_0
-      -khad
-      -vhad
-      -ngld 99
-      --spec-type ngram-mod:n_max=4,n_min=2,ngram_size_n=16
-      --spec-type mtp:n_max=2,p_min=0.0
-      --recurrent-ckpt-mode auto
-      --merge-qkv
-      -fa on
-      --jinja
-      --parallel-tool-calls
-    filters:
-      setParams:
-        temperature: 1.0
-        min_p: 0.0
-        top_p: 0.95
-        top_k: 20
-        thinking_budget_tokens: 4096
-        reasoning_budget_message: "... thinking budget exceeded, let's answer now."
-        chat_template_kwargs:
-          preserve_thinking: true
-          reasoning_effort: medium
-      setParamsByID:
-        "${MODEL_ID}:xhigh":
-          thinking_budget_tokens: 16384
-          chat_template_kwargs:
-            preserve_thinking: true
-            reasoning_effort: xhigh
-        "${MODEL_ID}:low":
-          thinking_budget_tokens: 1024
-          chat_template_kwargs:
-            preserve_thinking: true
-            reasoning_effort: low
-        "${MODEL_ID}:instruct":
-          temperature: 0.7
-          top_p: 0.8
-          presence_penalty: 1.5
-          chat_template_kwargs:
-            enable_thinking: false
-            preserve_thinking: false
-
   qwen3.8-27b-single:
     # https://github.com/syv-ai/HyperQwen
     proxy: ${macros-docker-proxy}
@@ -580,65 +439,6 @@ models:
             enable_thinking: false
             preserve_thinking: false
 
-  qwen3.8-flash-next:
-    # https://unsloth.ai/docs/models/qwen3.8-next
-    proxy: ${macros-docker-proxy}
-    cmdStop: ${macros-docker-stop}
-    cmd: >
-      ${macros-docker-llama}
-      --model /app/models/unsloth/Qwen3.8-Flash-Next-GGUF/Qwen3.8-Flash-Next-UD-IQ4_XS-00001-of-00003.gguf
-      --mmproj /app/models/unsloth/Qwen3.8-Flash-Next-GGUF/mmproj-Qwen3.8-Flash-Next-Q8_0.gguf
-      --port 9931
-      --cors-origins localhost
-      --metrics
-      --verbosity 4
-      --load-mode none
-      --lazy-mode on
-      --ctx-size 131072
-      --batch-size 2048
-      --ubatch-size 2048
-      --parallel 1
-      --cache-type-k q8_0
-      --cache-type-v q8_0
-    capabilities:
-      in:
-        - text
-        - image
-      out:
-        - text
-      tools: true
-      context: 131072
-    filters:
-      setParams:
-        temperature: 1.0
-        min_p: 0.0
-        top_p: 0.95
-        top_k: 20
-        presence_penalty: 0.0
-        thinking_budget_tokens: 4096
-        reasoning_budget_message: "... thinking budget exceeded, let's answer now."
-        chat_template_kwargs:
-          preserve_thinking: true
-          reasoning_effort: medium
-      setParamsByID:
-        "${MODEL_ID}:xhigh":
-          thinking_budget_tokens: 16384
-          chat_template_kwargs:
-            preserve_thinking: true
-            reasoning_effort: xhigh
-        "${MODEL_ID}:low":
-          thinking_budget_tokens: 1024
-          chat_template_kwargs:
-            preserve_thinking: true
-            reasoning_effort: low
-        "${MODEL_ID}:instruct":
-          temperature: 0.7
-          top_p: 0.8
-          presence_penalty: 1.5
-          chat_template_kwargs:
-            enable_thinking: false
-            preserve_thinking: false
-
   qwen3.8-flash-next-strata:
     # https://github.com/Niko1221/Strata
     proxy: ${macros-docker-proxy}
@@ -654,7 +454,7 @@ models:
         -e KV=int8
         -e CONTEXT=262144
         -e STRATA_ALLOWED_HOSTS=llama-swap:8080,llama-swap.ai.devmem.ru,chat.ai.devmem.ru
-        -v /home/spirkaa/projects/llm-homelab/Strata-data:/data
+        -v /mnt/data0/llm/strata/data/Strata-data:/data
         -p ${PORT}:8080
         git.devmem.ru/projects/llm-homelab/strata:latest
     capabilities:
@@ -695,31 +495,6 @@ models:
           chat_template_kwargs:
             enable_thinking: false
             preserve_thinking: false
-
-  glm-4.5-air-iq4-kss:
-    # https://huggingface.co/ubergarm/GLM-4.5-Air-GGUF
-    proxy: ${macros-docker-proxy}
-    cmdStop: ${macros-docker-stop}
-    cmd: >
-      ${macros-docker-ik-llama}
-      --model /app/models/ubergarm/GLM-4.5-Air-GGUF/GLM-4.5-Air-IQ4_KSS-00001-of-00002.gguf
-      --metrics
-      --no-mmap
-      --parallel 1
-      --threads 8
-      -rtr
-      -ctk q8_0
-      -ctv q8_0
-      -ub 4096
-      -b 4096
-      -ngl 99
-      -ot exps=CPU
-      --ctx-size 131072
-      --temp 0.6
-      --min-p 0
-      --top-p 0.95
-      --top-k 40
-      --chat-template chatglm4
 
   glm-4.7-flash-30b-a3b:
     # https://unsloth.ai/docs/models/glm-4.7-flash
