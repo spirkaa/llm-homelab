@@ -15,7 +15,7 @@ repos:
       - id: check-yaml
         args: [--unsafe]
   - repo: https://github.com/igorshubovych/markdownlint-cli
-    rev: v0.49.1
+    rev: v0.50.0
     hooks:
       - id: markdownlint
         args: [--fix, --disable, MD013, MD033, --]
@@ -40,7 +40,7 @@ repos:
       - id: shfmt
         args: ["-i 2", "-ci"]
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.16.9
+    rev: v0.17.3
     hooks:
       - id: ruff-check
         args: [--fix]
