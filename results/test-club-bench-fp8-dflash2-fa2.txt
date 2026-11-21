@@ -4,114 +4,113 @@
 ========== CONFIG FINGERPRINT ==========
   endpoint       : http://localhost:8110  (mode=chat)
   model          : qwen3.8-27b
-  serving pid    : 34493 (process name vllm)
+  serving pid    : 221201 (largest process in container club-3090-1-vllm-qwen38-27b-dual-ultramax-1)
   log source     : docker
-  GPUs measured  : all (2 card(s); BENCH_GPUS)
-  KV cache type  : fp8_e4m3 (source: argv)
-  serving argv   : model=/root/.cache/huggingface/qwen3.8-27b-fp8
+  GPUs measured  : all (2 card(s); the serving process uses every card)
+capture: KV cache type unavailable (not in argv, /props or the boot log)
   moe-cache cfg  : moe_cache_cap=<unset> RESERVE_MB=<unset> ADMIT_AFTER=<unset> THROTTLE=<unset> MAX_BATCH=<unset> STATS=<unset>
   CPU offload    : not detected (moe-cache captures skipped)
 
 ========== SYSTEM RAM ==========
-  mem_total_gib=62.7 mem_available_gib=47.2 server_rss_gib=2.5 swap_total_gib=32.0 swap_used_gib=0.0 server_swap_mib=0
+  mem_total_gib=62.7 mem_available_gib=47.4 server_rss_gib=3.1 swap_total_gib=32.0 swap_used_gib=0.5 server_swap_mib=0
   swap check     : PASS (no serving-process pages in swap)
 [bench] sampler: temperature=0.6  top_p=0.95  top_k=20  min_p=0.0
-[bench] narrative run 1/5: 947 tok in 8.6s (110.99 decode TPS, ttft 103ms)
-[bench] narrative run 2/5: 1000 tok in 8.6s (118.34 decode TPS, ttft 102ms)
-[bench] narrative run 3/5: 1000 tok in 9.1s (110.92 decode TPS, ttft 107ms)
-[bench] narrative run 4/5: 982 tok in 9.0s (110.84 decode TPS, ttft 108ms)
-[bench] narrative run 5/5: 1000 tok in 9.1s (111.40 decode TPS, ttft 105ms)
-[bench] code run 1/5: 800 tok in 3.9s (212.69 decode TPS, ttft 107ms)
-[bench] code run 2/5: 451 tok in 2.4s (198.31 decode TPS, ttft 106ms)
-[bench] code run 3/5: 352 tok in 1.8s (205.69 decode TPS, ttft 106ms)
-[bench] code run 4/5: 380 tok in 2.0s (202.05 decode TPS, ttft 108ms)
-[bench] code run 5/5: 516 tok in 2.7s (197.61 decode TPS, ttft 108ms)
+[bench] narrative run 1/5: 1000 tok in 8.6s (117.68 decode TPS, ttft 120ms)
+[bench] narrative run 2/5: 989 tok in 8.6s (116.63 decode TPS, ttft 126ms)
+[bench] narrative run 3/5: 1000 tok in 8.4s (120.18 decode TPS, ttft 115ms)
+[bench] narrative run 4/5: 1000 tok in 8.7s (116.32 decode TPS, ttft 118ms)
+[bench] narrative run 5/5: 995 tok in 9.3s (108.60 decode TPS, ttft 119ms)
+[bench] code run 1/5: 347 tok in 1.7s (212.45 decode TPS, ttft 100ms)
+[bench] code run 2/5: 800 tok in 4.0s (206.23 decode TPS, ttft 121ms)
+[bench] code run 3/5: 393 tok in 2.1s (196.44 decode TPS, ttft 121ms)
+[bench] code run 4/5: 677 tok in 3.3s (210.59 decode TPS, ttft 118ms)
+[bench] code run 5/5: 484 tok in 2.4s (212.97 decode TPS, ttft 119ms)
 [bench] capture: tokenizer ratio 1.35 tok/word (haystacks sized by measured tokens, not words)
-[bench] prefill-10k run 1/3: 9997 prompt tok, 2110.0 prefill tok/s, ttft 4738ms
-[bench] prefill-10k run 2/3: 9997 prompt tok, 2111.5 prefill tok/s, ttft 4734ms
-[bench] prefill-10k run 3/3: 9997 prompt tok, 2109.3 prefill tok/s, ttft 4740ms
-[bench] prefill-90k run 1/1: 86785 prompt tok, 1791.2 prefill tok/s, ttft 48451ms
+[bench] prefill-10k run 1/3: 10367 prompt tok, 2072.2 prefill tok/s, ttft 5003ms
+[bench] prefill-10k run 2/3: 10367 prompt tok, 2071.3 prefill tok/s, ttft 5005ms
+[bench] prefill-10k run 3/3: 10367 prompt tok, 2069.1 prefill tok/s, ttft 5010ms
+[bench] prefill-90k run 1/1: 86785 prompt tok, 1771.3 prefill tok/s, ttft 48996ms
 
 ========== NARRATIVE (prompt=65 chars, max_tokens=1000) ==========
 === warmups (3) ===
-  warm-1     wall=  8.81s  ttft=   115ms  toks=1000  wall_TPS=113.52  decode_TPS=115.03
-  warm-2     wall=  9.21s  ttft=   110ms  toks=1000  wall_TPS=108.60  decode_TPS=109.91
-  warm-3     wall=  8.63s  ttft=   109ms  toks= 947  wall_TPS=109.67  decode_TPS=111.08
+  warm-1     wall=  9.28s  ttft=   129ms  toks=1000  wall_TPS=107.76  decode_TPS=109.27
+  warm-2     wall=  9.05s  ttft=    97ms  toks= 996  wall_TPS=110.09  decode_TPS=111.28
+  warm-3     wall=  8.71s  ttft=   117ms  toks=1000  wall_TPS=114.78  decode_TPS=116.33
 
 === measured (5) ===
-  run-1      wall=  8.64s  ttft=   103ms  toks= 947  wall_TPS=109.67  decode_TPS=110.99
-  run-2      wall=  8.55s  ttft=   102ms  toks=1000  wall_TPS=116.93  decode_TPS=118.34
-  run-3      wall=  9.12s  ttft=   107ms  toks=1000  wall_TPS=109.61  decode_TPS=110.92
-  run-4      wall=  8.97s  ttft=   108ms  toks= 982  wall_TPS=109.50  decode_TPS=110.84
-  run-5      wall=  9.08s  ttft=   105ms  toks=1000  wall_TPS=110.12  decode_TPS=111.40
+  run-1      wall=  8.62s  ttft=   120ms  toks=1000  wall_TPS=116.04  decode_TPS=117.68
+  run-2      wall=  8.61s  ttft=   126ms  toks= 989  wall_TPS=114.92  decode_TPS=116.63
+  run-3      wall=  8.44s  ttft=   115ms  toks=1000  wall_TPS=118.53  decode_TPS=120.18
+  run-4      wall=  8.71s  ttft=   118ms  toks=1000  wall_TPS=114.75  decode_TPS=116.32
+  run-5      wall=  9.28s  ttft=   119ms  toks= 995  wall_TPS=107.21  decode_TPS=108.60
 
 === summary [narrative] (n=5) ===
-  wall_TPS       mean= 111.17   std=  3.23   CV= 2.9%   min=109.50   max=116.93
-  decode_TPS     mean= 112.50   std=  3.27   CV= 2.9%   min=110.84   max=118.34
-  TTFT          mean=   105ms  std=    3ms  min=102ms  max=108ms
+  wall_TPS       mean= 114.29   std=  4.24   CV= 3.7%   min=107.21   max=118.53
+  decode_TPS     mean= 115.88   std=  4.34   CV= 3.7%   min=108.60   max=120.18
+  TTFT          mean=   120ms  std=    4ms  min=115ms  max=126ms
   n-usable      5/5  (runs with >= 250 tokens, 25% of max_tokens=1000)
   PP tok/s       n/a (engine-log scrape suppressed: prompt is 25 tok (< 1000) - the engine averages prompt throughput over a ~10 s window, and a prompt this short cannot fill one)
                  the trustworthy prefill number is the client-side `prefill tok/s` summary (prompt_tokens/TTFT, cache-busted)
 
 ========== CODE (prompt=78 chars, max_tokens=800) ==========
 === warmups (3) ===
-  warm-1     wall=  2.86s  ttft=    86ms  toks= 560  wall_TPS=195.51  decode_TPS=201.58
-  warm-2     wall=  2.77s  ttft=   106ms  toks= 602  wall_TPS=217.14  decode_TPS=225.79
-  warm-3     wall=  1.91s  ttft=   110ms  toks= 382  wall_TPS=200.50  decode_TPS=212.77
+  warm-1     wall=  3.84s  ttft=   101ms  toks= 800  wall_TPS=208.47  decode_TPS=214.08
+  warm-2     wall=  2.59s  ttft=   119ms  toks= 583  wall_TPS=225.50  decode_TPS=236.34
+  warm-3     wall=  2.20s  ttft=   120ms  toks= 432  wall_TPS=196.56  decode_TPS=207.91
 
 === measured (5) ===
-  run-1      wall=  3.87s  ttft=   107ms  toks= 800  wall_TPS=206.82  decode_TPS=212.69
-  run-2      wall=  2.38s  ttft=   106ms  toks= 451  wall_TPS=189.44  decode_TPS=198.31
-  run-3      wall=  1.82s  ttft=   106ms  toks= 352  wall_TPS=193.69  decode_TPS=205.69
-  run-4      wall=  1.99s  ttft=   108ms  toks= 380  wall_TPS=191.05  decode_TPS=202.05
-  run-5      wall=  2.72s  ttft=   108ms  toks= 516  wall_TPS=189.79  decode_TPS=197.61
+  run-1      wall=  1.73s  ttft=   100ms  toks= 347  wall_TPS=200.19  decode_TPS=212.45
+  run-2      wall=  4.00s  ttft=   121ms  toks= 800  wall_TPS=199.97  decode_TPS=206.23
+  run-3      wall=  2.12s  ttft=   121ms  toks= 393  wall_TPS=185.26  decode_TPS=196.44
+  run-4      wall=  3.33s  ttft=   118ms  toks= 677  wall_TPS=203.13  decode_TPS=210.59
+  run-5      wall=  2.39s  ttft=   119ms  toks= 484  wall_TPS=202.39  decode_TPS=212.97
 
 === summary [code] (n=5) ===
-  wall_TPS       mean= 194.16   std=  7.27   CV= 3.7%   min=189.44   max=206.82
-  decode_TPS     mean= 203.27   std=  6.18   CV= 3.0%   min=197.61   max=212.69
-  TTFT          mean=   107ms  std=    1ms  min=106ms  max=108ms
+  wall_TPS       mean= 198.19   std=  7.35   CV= 3.7%   min=185.26   max=203.13
+  decode_TPS     mean= 207.73   std=  6.85   CV= 3.3%   min=196.44   max=212.97
+  TTFT          mean=   116ms  std=    9ms  min=100ms  max=121ms
   n-usable      5/5  (runs with >= 200 tokens, 25% of max_tokens=800)
   PP tok/s       n/a (engine-log scrape suppressed: prompt is 25 tok (< 1000) - the engine averages prompt throughput over a ~10 s window, and a prompt this short cannot fill one)
                  the trustworthy prefill number is the client-side `prefill tok/s` summary (prompt_tokens/TTFT, cache-busted)
 
-========== PREFILL-10K (target=10000 prompt tokens, max_tokens=16, cache-busted: fresh haystack per run) ==========
+========== PREFILL-10K (target=10000 prompt tokens, max_tokens=16 warm-up / 128 measured, cache-busted: fresh haystack per run) ==========
 === warmups (1) ===
-  warm-1     wall=  4.53s  ttft=  4494ms  prompt_toks=  9565  PP_tok/s=2128.38
+  warm-1     wall=  4.66s  ttft=  4632ms  prompt_toks=  9565  PP_tok/s=2064.98
   [calibrated: 9565 tok at request=10000 → measured runs request 10454]
 
 === measured (3) ===
-  run-1      wall=  6.20s  ttft=  4738ms  prompt_toks=  9997  PP_tok/s=2110.05
-  run-2      wall=  5.73s  ttft=  4734ms  prompt_toks=  9997  PP_tok/s=2111.53
-  run-3      wall=  5.30s  ttft=  4740ms  prompt_toks=  9997  PP_tok/s=2109.27
+  run-1      wall=  5.70s  ttft=  5003ms  prompt_toks= 10367  PP_tok/s=2072.16
+  run-2      wall=  5.55s  ttft=  5005ms  prompt_toks= 10367  PP_tok/s=2071.27
+  run-3      wall=  5.59s  ttft=  5010ms  prompt_toks= 10367  PP_tok/s=2069.12
 
 === summary [prefill-10k] (n=3) ===
-  prefill tok/s  mean=2110.28   std=  1.15   CV= 0.1%   min=2109.27   max=2111.53
-  decode tok/s @ 10k depth mean= 148.40   std= 73.05   CV=49.2%   min=87.30   max=229.31
-  TTFT          mean=  4737ms  std=    3ms  min=4734ms  max=4740ms
-  PP tok/s (engine log, windowed) n/a (suppressed: scraped CV 164.7% (> 100%) - the sample straddles idle and busy windows, which is not a rate)
+  prefill tok/s  mean=2070.85   std=  1.56   CV= 0.1%   min=2069.12   max=2072.16
+  decode tok/s @ 10k depth mean= 213.40   std= 25.33   CV=11.9%   min=184.93   max=233.46
+  TTFT          mean=  5006ms  std=    4ms  min=5003ms  max=5010ms
+  PP tok/s (engine log, windowed) n/a (suppressed: scraped CV 100.3% (> 100%) - the sample straddles idle and busy windows, which is not a rate)
                  the `prefill tok/s` line above is the client-side measurement for this depth
 
-========== PREFILL-90K (target=90000 prompt tokens, max_tokens=16, cache-busted: fresh haystack per run) ==========
+========== PREFILL-90K (target=90000 prompt tokens, max_tokens=16 warm-up / 128 measured, cache-busted: fresh haystack per run) ==========
 === warmups (1) ===
-  warm-1     wall= 50.15s  ttft= 50134ms  prompt_toks= 89075  PP_tok/s=1776.75
+  warm-1     wall= 50.56s  ttft= 50549ms  prompt_toks= 89075  PP_tok/s=1762.14
   [calibrated: 89075 tok at request=90000 → measured runs request 90934]
 
 === measured (1) ===
-  run-1      wall= 49.97s  ttft= 48451ms  prompt_toks= 86785  PP_tok/s=1791.17
+  run-1      wall= 49.79s  ttft= 48996ms  prompt_toks= 86785  PP_tok/s=1771.26
 
 === summary [prefill-90k] (n=1) ===
-  prefill tok/s  mean=1791.17   std=  0.00   CV= 0.0%   min=1791.17   max=1791.17
-  decode tok/s @ 90k depth mean=  84.25   std=  0.00   CV= 0.0%   min=84.25   max=84.25
-  TTFT          mean= 48451ms  std=    0ms  min=48451ms  max=48451ms
-  PP tok/s (engine log, windowed — indicative only) mean=8907.60   std=  0.00   CV= 0.0%   min=8907.60   max=8907.60
+  prefill tok/s  mean=1771.26   std=  0.00   CV= 0.0%   min=1771.26   max=1771.26
+  decode tok/s @ 90k depth mean= 161.35   std=  0.00   CV= 0.0%   min=161.35   max=161.35
+  TTFT          mean= 48996ms  std=    0ms  min=48996ms  max=48996ms
+  PP tok/s (engine log, windowed — indicative only) mean=8907.20   std=  0.00   CV= 0.0%   min=8907.20   max=8907.20
 
 ========== CAPTURE: PCIe ==========
-  decode all rx_mean=654 rx_peak=4435 tx_mean=608 tx_peak=2729 sm_mean=99.7 memctl_mean=82.9 samples=106
-  decode GPU0 rx_mean=626 rx_peak=1000 tx_mean=630 tx_peak=2729 sm_mean=99.4 memctl_mean=82.6 samples=53
-  decode GPU1 rx_mean=683 rx_peak=4435 tx_mean=586 tx_peak=630 sm_mean=100.0 memctl_mean=83.3 samples=53
-  prefill all rx_mean=2747 rx_peak=4372 tx_mean=2689 tx_peak=4361 sm_mean=99.9 memctl_mean=47.4 samples=124
-  prefill GPU0 rx_mean=2664 rx_peak=4372 tx_mean=2767 tx_peak=4358 sm_mean=99.9 memctl_mean=47.4 samples=62
-  prefill GPU1 rx_mean=2831 rx_peak=4371 tx_mean=2611 tx_peak=4361 sm_mean=99.9 memctl_mean=47.5 samples=62
+  decode all rx_mean=641 rx_peak=705 tx_mean=607 tx_peak=669 sm_mean=99.5 memctl_mean=84.1 samples=106
+  decode GPU0 rx_mean=646 rx_peak=689 tx_mean=610 tx_peak=669 sm_mean=99.8 memctl_mean=84.5 samples=53
+  decode GPU1 rx_mean=636 rx_peak=705 tx_mean=603 tx_peak=664 sm_mean=99.2 memctl_mean=83.6 samples=53
+  prefill all rx_mean=3001 rx_peak=8407 tx_mean=2436 tx_peak=4651 sm_mean=98.7 memctl_mean=47.6 samples=124
+  prefill GPU0 rx_mean=2900 rx_peak=8365 tx_mean=2172 tx_peak=4651 sm_mean=98.8 memctl_mean=47.2 samples=62
+  prefill GPU1 rx_mean=3102 rx_peak=8407 tx_mean=2700 tx_peak=4443 sm_mean=98.7 memctl_mean=48.0 samples=62
   note: decode and prefill PCIe traffic differ by ~100x on an offloaded MoE —
         a whole-run mean describes neither. 1 Hz under-reads bursts, so the
         PEAK is reported next to the mean, not instead of it.
@@ -120,20 +119,20 @@
     GPU1 gen=4/4 width=8/16  ⚠ WARN: never reached gen4 x16 under load — link is training below its own maximum (check slot/riser/BIOS bifurcation)
     denominator: ~13389 MB/s practical for a negotiated gen4 x8 link
                  (per-lane raw x width x 0.85; NOT a theoretical peak)
-    decode rx peak = 4435 MB/s = 33.1% of that denominator
+    decode rx peak = 705 MB/s = 5.3% of that denominator
 
 ========== CAPTURE: VRAM ==========
-  idle=47948 MiB  peak=47948 MiB  post=47948 MiB
+  idle=47572 MiB  peak=47572 MiB  post=47572 MiB
   leak delta (post - idle) = 0 MiB
-  GPU0 23984 MiB (post-run)
-  GPU1 23964 MiB (post-run)
+  GPU0 23796 MiB (post-run)
+  GPU1 23776 MiB (post-run)
   component split (MiB):
-  CUDA0: total=23984/24576MiB(98%)
-  CUDA1: total=23964/24576MiB(98%)
-  host CPU busy across the run: 19.8%
+  CUDA0: total=23796/24576MiB(97%)
+  CUDA1: total=23776/24576MiB(97%)
+  host CPU busy across the run: 19.6%
 
 ========== CAPTURE: DRAFT ACCEPTANCE ==========
-  fired=28 last=0.143 mean=0.400 min=0.143 max=0.771 accepted=18621 drafted=47257 accept_len_mean=3.802 accept_len_last=2.000 accept_len_min=2.000 accept_len_max=6.400
+  fired=30 last=0.143 mean=0.460 min=0.143 max=1.000 accepted=19274 drafted=47453 accept_len_mean=4.220 accept_len_last=2.000 accept_len_min=2.000 accept_len_max=8.000
 
 ========== CAPTURE: ENGINE-SIDE TIMINGS ==========
   no print_timing lines in the log (engine may not emit them at this verbosity)
@@ -148,8 +147,8 @@
   swap check   : PASS (no serving-process pages in swap)
 
 === GPU state ===
-0, 45 %, 23984 MiB, 24576 MiB, 272.30 W, 71
-1, 100 %, 23964 MiB, 24576 MiB, 279.85 W, 71
+0, 100 %, 23796 MiB, 24576 MiB, 279.29 W, 72
+1, 100 %, 23776 MiB, 24576 MiB, 279.57 W, 74
 
 === Interconnect (three layers) ===
   layer 1  driver P2P grant : GRANTED over PCIe — topo -p2p reports OK on every pair; kernel module: open
@@ -158,6 +157,6 @@
   verdict  : ✓ interconnect: PCIe P2P engaged (patched driver, custom all-reduce ON)
 
 === Last 3 SpecDecoding metrics ===
-(APIServer pid=1) INFO 10-25 12:06:56 [metrics.py:120] SpecDecoding metrics: Mean acceptance length: 2.57, Accepted throughput: 8.00 tokens/s, Drafted throughput: 35.70 tokens/s, Accepted: 80 tokens, Drafted: 357 tokens, Per-position acceptance rate: 0.706, 0.510, 0.196, 0.078, 0.059, 0.020, 0.000, Avg Draft acceptance rate: 22.4%
-(APIServer pid=1) INFO 10-25 12:07:06 [metrics.py:120] SpecDecoding metrics: Mean acceptance length: 4.83, Accepted throughput: 20.30 tokens/s, Drafted throughput: 37.10 tokens/s, Accepted: 203 tokens, Drafted: 371 tokens, Per-position acceptance rate: 0.811, 0.755, 0.717, 0.698, 0.283, 0.283, 0.283, Avg Draft acceptance rate: 54.7%
-(APIServer pid=1) INFO 10-25 12:07:56 [metrics.py:120] SpecDecoding metrics: Mean acceptance length: 2.00, Accepted throughput: 0.02 tokens/s, Drafted throughput: 0.14 tokens/s, Accepted: 1 tokens,Drafted: 7 tokens, Per-position acceptance rate: 1.000, 0.000, 0.000, 0.000, 0.000, 0.000, 0.000, Avg Draft acceptance rate: 14.3%
+(APIServer pid=1) INFO 11-21 09:23:49 [metrics.py:120] SpecDecoding metrics: Mean acceptance length: 6.09, Accepted throughput: 21.90 tokens/s, Drafted throughput: 30.10 tokens/s, Accepted: 219 tokens, Drafted: 301 tokens, Per-position acceptance rate: 0.767, 0.744, 0.744, 0.744, 0.698, 0.698, 0.698, Avg Draft acceptance rate: 72.8%
+(APIServer pid=1) INFO 11-21 09:23:59 [metrics.py:120] SpecDecoding metrics: Mean acceptance length: 6.40, Accepted throughput: 10.80 tokens/s, Drafted throughput: 14.00 tokens/s, Accepted: 108 tokens, Drafted: 140 tokens, Per-position acceptance rate: 0.850, 0.800, 0.750, 0.750, 0.750, 0.750, 0.750, Avg Draft acceptance rate: 77.1%
+(APIServer pid=1) INFO 11-21 09:24:49 [metrics.py:120] SpecDecoding metrics: Mean acceptance length: 2.00, Accepted throughput: 0.02 tokens/s, Drafted throughput: 0.14 tokens/s, Accepted: 1 tokens, Drafted: 7 tokens, Per-position acceptance rate: 1.000, 0.000, 0.000, 0.000, 0.000, 0.000, 0.000, Avg Draft acceptance rate: 14.3%
