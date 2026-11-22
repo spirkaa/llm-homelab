@@ -449,14 +449,16 @@ models:
         --name model-${MODEL_ID}
         --gpus all --ipc=host --ulimit memlock=-1
         -e GPUS=all
+        -e PRESET=iq3_s-256k
+        -e FAMILY=qwen
         -e MODEL=IQ3_S
         -e VISION=yes
         -e KV=int8
         -e CONTEXT=262144
         -e STRATA_ALLOWED_HOSTS=llama-swap:8080,llama-swap.ai.devmem.ru,chat.ai.devmem.ru
-        -v /mnt/data0/llm/strata/data/Strata-data:/data
+        -v /mnt/data0/llm/strata/data:/data
         -p ${PORT}:8080
-        git.devmem.ru/projects/llm-homelab/strata:latest
+        ghcr.io/niko1221/strata:0.2.19-cuda13
     capabilities:
       in:
         - text
